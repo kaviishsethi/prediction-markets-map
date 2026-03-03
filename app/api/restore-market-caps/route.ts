@@ -101,7 +101,7 @@ export async function POST() {
     }
 
     // Get unique not found companies
-    const uniqueNotFound = [...new Set(notFound)]
+    const uniqueNotFound = Array.from(new Set(notFound))
 
     return NextResponse.json({
       success: true,

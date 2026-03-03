@@ -61,6 +61,10 @@ function transformToConfig(
         name: string
         logo: string | null
         market_cap: number | null
+        ticker: string | null
+        is_public: boolean
+        description: string | null
+        company_status: string | null
       }
     }>
   }>,

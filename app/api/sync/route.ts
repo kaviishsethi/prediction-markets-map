@@ -112,6 +112,7 @@ export async function POST() {
             is_public: isPublic,
             market_cap: parsedMarketCap,
             ticker: ticker || null,
+            company_status: null,
           })
         }
 

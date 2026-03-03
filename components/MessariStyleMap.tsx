@@ -264,7 +264,6 @@ function LayerSection({
     if (!containerRef.current) return
 
     const containerWidth = containerRef.current.offsetWidth
-    const numCategories = layer.categories.length
 
     // Calculate proportional widths based on company count
     const totalCompanies = layer.categories.reduce((sum, cat) => sum + cat.companies.length, 0)

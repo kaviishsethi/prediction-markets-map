@@ -68,7 +68,6 @@ export const CATEGORY_MAP: Record<string, string> = {
   'Cloud & Compute': 'cloud-hosting',
   'Cloud': 'cloud-hosting',
   'Hosting': 'cloud-hosting',
-  'Inference': 'inference',
   'Chips & Hardware': 'chips-hardware',
   'Chips': 'chips-hardware',
   'Hardware': 'chips-hardware',
