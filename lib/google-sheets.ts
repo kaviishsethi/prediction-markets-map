@@ -16,17 +16,18 @@ export async function getGoogleSheetsClient() {
 
 export interface SheetRow {
   rowIndex: number
-  timestamp: string
-  companyName: string
-  website: string
-  category: string
-  description: string
-  logoUrl: string
-  twitter: string
-  email: string
-  projectPage: string
-  status: string
-  isPublic: boolean
+  timestamp: string        // A
+  companyName: string      // B
+  website: string          // C
+  category: string         // D
+  description: string      // E
+  logoUrl: string          // F
+  twitter: string          // G
+  isPublic: boolean        // H (Public/Private)
+  ticker: string           // I
+  marketCap: string        // J (MC or Valuation)
+  projectPage: string      // K
+  status: string           // L
 }
 
 export async function getSheetData(): Promise<SheetRow[]> {
@@ -35,12 +36,13 @@ export async function getSheetData(): Promise<SheetRow[]> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: 'companies!A:K',
+    range: 'companies!A:L',  // Extended to column L
   })
 
   const rows = response.data.values || []
 
   // Skip header row, map to objects
+  // Headers: Timestamp, Company Name, Website, Category, Description, Logo URL, Twitter, Public/Private, Ticker, MC or Valuation, Project Page, Status
   return rows.slice(1).map((row, index) => ({
     rowIndex: index + 2, // +2 because: 1-indexed + skip header
     timestamp: row[0] || '',
@@ -50,10 +52,11 @@ export async function getSheetData(): Promise<SheetRow[]> {
     description: row[4] || '',
     logoUrl: row[5] || '',
     twitter: row[6] || '',
-    email: row[7] || '',
-    projectPage: row[8] || '',
-    status: row[9] || '',
-    isPublic: (row[10] || '').toLowerCase() === 'public',
+    isPublic: (row[7] || '').toLowerCase() === 'public',
+    ticker: row[8] || '',
+    marketCap: row[9] || '',
+    projectPage: row[10] || '',
+    status: row[11] || '',
   }))
 }
 
@@ -61,9 +64,10 @@ export async function updateRowStatus(rowIndex: number, status: string): Promise
   const sheets = await getGoogleSheetsClient()
   const spreadsheetId = process.env.GOOGLE_SHEETS_ID
 
+  // Status is in column L (index 12)
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `companies!J${rowIndex}`,
+    range: `companies!L${rowIndex}`,
     valueInputOption: 'RAW',
     requestBody: {
       values: [[status]],

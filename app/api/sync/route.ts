@@ -54,7 +54,7 @@ export async function POST() {
     }> = []
 
     for (const row of doneRows) {
-      const { rowIndex, companyName, website, category, description, logoUrl, twitter, projectPage } = row
+      const { rowIndex, companyName, website, category, description, logoUrl, twitter, projectPage, ticker, marketCap, isPublic } = row
 
       // Validate category
       const categorySlug = getCategorySlug(category)
@@ -85,6 +85,18 @@ export async function POST() {
           continue
         }
 
+        // Parse market cap from string like "$3.9T" or "$100B"
+        let parsedMarketCap: number | null = null
+        if (marketCap) {
+          const match = marketCap.match(/\$?([\d.]+)(T|B)?/i)
+          if (match) {
+            const num = parseFloat(match[1])
+            const unit = match[2]?.toUpperCase()
+            // Store in billions
+            parsedMarketCap = unit === 'T' ? num * 1000 : num
+          }
+        }
+
         // Check if protocol metadata exists
         const existingMetadata = await getProtocolMetadata(slug)
         if (!existingMetadata) {
@@ -97,6 +109,9 @@ export async function POST() {
             website: website || null,
             twitter: twitter || null,
             artemisProjectPage: projectPage || null,
+            is_public: isPublic,
+            market_cap: parsedMarketCap,
+            ticker: ticker || null,
           })
         }
 
