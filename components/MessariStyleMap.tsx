@@ -23,6 +23,8 @@ interface Company {
   isPublic?: boolean
   description?: string
   companyStatus?: string  // 'active', 'acquired', 'merged', etc.
+  website?: string
+  twitter?: string
 }
 
 interface TooltipData {
@@ -95,7 +97,7 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
     top: y + 10,
     ...(showOnLeft ? { right: windowWidth - x + 10 } : { left: x + 10 }),
     zIndex: 50,
-    maxWidth: 300,
+    maxWidth: 360,
   }
 
   // Determine status badge
@@ -137,8 +139,18 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
         </div>
       )}
       {company.description && (
-        <div className="text-xs text-gray-500 mt-2 line-clamp-3">
+        <div className="text-xs text-gray-600 mt-2">
           {company.description}
+        </div>
+      )}
+      {(company.website || company.twitter) && (
+        <div className="flex gap-3 mt-2 text-xs">
+          {company.website && (
+            <span className="text-blue-500">🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+          )}
+          {company.twitter && (
+            <span className="text-blue-400">𝕏 {company.twitter.includes('/') ? company.twitter.split('/').pop() : company.twitter}</span>
+          )}
         </div>
       )}
     </div>
@@ -294,9 +306,9 @@ function LayerSection({
   return (
     <div className="mb-4 mt-3 relative">
       {/* Layer title - positioned on top border */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-3 px-3 bg-white z-10">
+      <div className="absolute left-1/2 -translate-x-1/2 -top-3.5 px-3 bg-white z-10">
         <span
-          className="text-sm font-bold whitespace-nowrap"
+          className="text-base font-bold whitespace-nowrap"
           style={{ color: ARTEMIS_PURPLE }}
         >
           {layer.name}

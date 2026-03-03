@@ -57,6 +57,8 @@ function transformToConfig(
     bucket: string
     protocols: Array<{
       protocol: string
+      website: string | null
+      twitter: string | null
       metadata: {
         name: string
         logo: string | null
@@ -65,6 +67,8 @@ function transformToConfig(
         is_public: boolean
         description: string | null
         company_status: string | null
+        website: string | null
+        twitter: string | null
       }
     }>
   }>,
@@ -101,6 +105,8 @@ function transformToConfig(
         isPublic: p.metadata.is_public,
         description: p.metadata.description || undefined,
         companyStatus: p.metadata.company_status || undefined,
+        website: p.metadata.website || p.website || undefined,
+        twitter: p.metadata.twitter || p.twitter || undefined,
       })),
     })
   }
