@@ -19,6 +19,7 @@ export interface ProtocolMetadata {
   is_public: boolean
   market_cap: number | null
   ticker: string | null  // Stock ticker (e.g., "NVDA") or crypto token symbol
+  company_status: string | null  // 'active', 'acquired', 'merged', etc.
   created_at: string
 }
 

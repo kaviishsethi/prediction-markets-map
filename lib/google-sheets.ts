@@ -74,3 +74,28 @@ export async function updateRowStatus(rowIndex: number, status: string): Promise
     },
   })
 }
+
+export interface LogoRow {
+  companyName: string
+  twitter: string
+  logoUrl: string
+}
+
+export async function getLogosData(): Promise<LogoRow[]> {
+  const sheets = await getGoogleSheetsClient()
+  const spreadsheetId = process.env.GOOGLE_SHEETS_ID
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: 'logos!A:C',  // A=company name, B=twitter, C=logo URL
+  })
+
+  const rows = response.data.values || []
+
+  // Skip header row, filter to rows with logo URLs
+  return rows.slice(1).map((row) => ({
+    companyName: row[0] || '',
+    twitter: row[1] || '',
+    logoUrl: row[2] || '',
+  })).filter(row => row.companyName && row.logoUrl)
+}

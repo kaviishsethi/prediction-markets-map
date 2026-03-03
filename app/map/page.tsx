@@ -10,6 +10,45 @@ const LAYER_CONFIG: Record<string, { displayName: string; order: number }> = {
   'SECURITY': { displayName: 'Security', order: 5 },
 }
 
+// Category to layer mapping - matches treemap exactly
+// Only categories in this map will be displayed
+const CATEGORY_LAYERS: Record<string, string> = {
+  'Consumer': 'APPLICATION',
+  'Enterprise': 'APPLICATION',
+  'Agent Platforms/Frameworks': 'APPLICATION',
+  'Foundation Models': 'MODEL',
+  'Post-Training': 'MODEL',
+  'Storage & Retrieval': 'DATA',
+  'Labeling': 'DATA',
+  'Pipelines': 'DATA',
+  'Cloud & Hosting': 'INFRA',
+  'Inference': 'INFRA',
+  'Chips & Hardware': 'INFRA',
+  'Energy & Datacenters': 'INFRA',
+  'Model Security': 'SECURITY',
+  'Infrastructure Security': 'SECURITY',
+  'AI Governance': 'SECURITY',
+}
+
+// Category display order (left to right within each layer)
+const CATEGORY_ORDER: Record<string, number> = {
+  'Consumer': 1,
+  'Enterprise': 2,
+  'Agent Platforms/Frameworks': 3,
+  'Foundation Models': 4,
+  'Post-Training': 5,
+  'Labeling': 6,
+  'Pipelines': 7,
+  'Storage & Retrieval': 8,
+  'Inference': 9,
+  'Chips & Hardware': 10,
+  'Cloud & Hosting': 11,
+  'Energy & Datacenters': 12,
+  'Model Security': 13,
+  'AI Governance': 14,
+  'Infrastructure Security': 15,
+}
+
 // Transform Supabase data to MessariStyleMap config
 function transformToConfig(
   categoriesWithProtocols: Record<string, {
@@ -27,11 +66,16 @@ function transformToConfig(
   }>,
   maxCompaniesPerCategory: number = 8
 ): MarketMapConfig {
-  // Group categories by layer (bucket)
+  // Group categories by layer (using CATEGORY_LAYERS mapping)
   const layerMap = new Map<string, Category[]>()
 
   for (const [, category] of Object.entries(categoriesWithProtocols)) {
-    const layerName = category.bucket || 'OTHER'
+    // Only include categories that are in the CATEGORY_LAYERS mapping
+    const layerName = CATEGORY_LAYERS[category.label]
+    if (!layerName) {
+      // Skip categories not in the approved list
+      continue
+    }
 
     if (!layerMap.has(layerName)) {
       layerMap.set(layerName, [])
@@ -48,6 +92,11 @@ function transformToConfig(
         name: p.metadata.name,
         logo: p.metadata.logo || undefined,
         slug: p.protocol,
+        ticker: p.metadata.ticker || undefined,
+        marketCap: p.metadata.market_cap || undefined,
+        isPublic: p.metadata.is_public,
+        description: p.metadata.description || undefined,
+        companyStatus: p.metadata.company_status || undefined,
       })),
     })
   }
@@ -64,6 +113,13 @@ function transformToConfig(
   for (const layerName of sortedLayerNames) {
     const categories = layerMap.get(layerName) || []
     const displayName = LAYER_CONFIG[layerName]?.displayName || layerName
+
+    // Sort categories by the specified order
+    categories.sort((a, b) => {
+      const orderA = CATEGORY_ORDER[a.name] ?? 99
+      const orderB = CATEGORY_ORDER[b.name] ?? 99
+      return orderA - orderB
+    })
 
     layers.push({
       name: displayName,
@@ -87,7 +143,8 @@ function transformToConfig(
 
 export default async function MapPage() {
   const categoriesWithProtocols = await getCategoriesWithProtocols()
-  const config = transformToConfig(categoriesWithProtocols, 10)
+  // Don't limit companies - let component size proportionally based on category size
+  const config = transformToConfig(categoriesWithProtocols)
 
   return <MessariStyleMap config={config} />
 }
