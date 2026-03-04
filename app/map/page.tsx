@@ -66,7 +66,7 @@ function transformToConfig(
         ticker: string | null
         is_public: boolean
         description: string | null
-        company_status: string | null
+        company_status?: string | null
         website: string | null
         twitter: string | null
       }
