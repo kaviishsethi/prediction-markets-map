@@ -91,7 +91,19 @@ const TOOLTIP_LOGO_SIZE = 48
 const TOOLTIP_HEIGHT_ESTIMATE = 200 // Approximate max height of tooltip
 
 // Tooltip component
-function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windowWidth: number; windowHeight: number }) {
+function Tooltip({
+  data,
+  windowWidth,
+  windowHeight,
+  isPinned = false,
+  onClose
+}: {
+  data: TooltipData
+  windowWidth: number
+  windowHeight: number
+  isPinned?: boolean
+  onClose?: () => void
+}) {
   const { company, x, y } = data
 
   // Position tooltip based on screen position (both horizontal and vertical)
@@ -104,6 +116,10 @@ function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windo
     ...(showOnLeft ? { right: windowWidth - x + 10 } : { left: x + 10 }),
     zIndex: 50,
     maxWidth: 400,
+  }
+
+  const handleTooltipClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent closing when clicking inside tooltip
   }
 
   // Determine status badge
@@ -134,8 +150,9 @@ function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windo
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-lg shadow-xl p-3 pointer-events-none"
+      className={`bg-white border border-gray-200 rounded-lg shadow-xl p-3 ${isPinned ? '' : 'pointer-events-none'}`}
       style={tooltipStyle}
+      onClick={handleTooltipClick}
     >
       {/* Header with logo in top-right */}
       <div className="flex justify-between items-start gap-3">
@@ -145,6 +162,15 @@ function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windo
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusBadge.color}`}>
               {statusBadge.text}
             </span>
+            {isPinned && (
+              <button
+                onClick={onClose}
+                className="ml-auto text-gray-400 hover:text-gray-600 text-sm"
+                title="Close"
+              >
+                ✕
+              </button>
+            )}
           </div>
           {company.ticker && (
             <div className="text-xs text-blue-600 mt-0.5">${company.ticker}</div>
@@ -187,10 +213,24 @@ function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windo
       {(company.website || company.twitter) && (
         <div className="flex flex-col gap-1 mt-2 text-xs">
           {company.website && (
-            <div className="text-blue-500">🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</div>
+            <a
+              href={company.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-blue-500 ${isPinned ? 'hover:underline cursor-pointer' : ''}`}
+            >
+              🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+            </a>
           )}
           {company.twitter && (
-            <div className="text-blue-400">𝕏 {getTwitterUrl(company.twitter)}</div>
+            <a
+              href={getTwitterUrl(company.twitter)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-blue-400 ${isPinned ? 'hover:underline cursor-pointer' : ''}`}
+            >
+              𝕏 {getTwitterUrl(company.twitter)}
+            </a>
           )}
         </div>
       )}
@@ -201,21 +241,36 @@ function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windo
 // Single company cell - fixed width and height, logo + name below
 function CompanyCell({
   company,
-  onHover
+  onHover,
+  onClick,
+  isPinned
 }: {
   company: Company
   onHover: (data: TooltipData | null) => void
+  onClick: (data: TooltipData) => void
+  isPinned: boolean
 }) {
   const handleMouseEnter = (e: React.MouseEvent) => {
-    onHover({ company, x: e.clientX, y: e.clientY })
+    if (!isPinned) {
+      onHover({ company, x: e.clientX, y: e.clientY })
+    }
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    onHover({ company, x: e.clientX, y: e.clientY })
+    if (!isPinned) {
+      onHover({ company, x: e.clientX, y: e.clientY })
+    }
   }
 
   const handleMouseLeave = () => {
-    onHover(null)
+    if (!isPinned) {
+      onHover(null)
+    }
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onClick({ company, x: e.clientX, y: e.clientY })
   }
 
   return (
@@ -225,6 +280,7 @@ function CompanyCell({
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       {company.logo ? (
         <Image
@@ -252,11 +308,15 @@ function CompanyCell({
 function CategorySection({
   category,
   availableWidth,
-  onHover
+  onHover,
+  onClick,
+  isPinned
 }: {
   category: Category
   availableWidth: number
   onHover: (data: TooltipData | null) => void
+  onClick: (data: TooltipData) => void
+  isPinned: boolean
 }) {
   // Calculate how many companies fit per row based on available width
   const effectiveWidth = availableWidth - CATEGORY_PADDING
@@ -288,13 +348,13 @@ function CategorySection({
         {/* Row 1 */}
         <div className="flex justify-center" style={{ gap: CELL_GAP, height: CELL_HEIGHT }}>
           {row1.map((company, idx) => (
-            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} />
+            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
         </div>
         {/* Row 2 - centered, always rendered for consistent height */}
         <div className="flex justify-center" style={{ gap: CELL_GAP, height: CELL_HEIGHT }}>
           {row2.map((company, idx) => (
-            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} />
+            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
         </div>
       </div>
@@ -305,10 +365,14 @@ function CategorySection({
 // Layer section with responsive width calculation
 function LayerSection({
   layer,
-  onHover
+  onHover,
+  onClick,
+  isPinned
 }: {
   layer: Layer
   onHover: (data: TooltipData | null) => void
+  onClick: (data: TooltipData) => void
+  isPinned: boolean
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [categoryWidths, setCategoryWidths] = useState<number[]>([])
@@ -375,6 +439,8 @@ function LayerSection({
               category={category}
               availableWidth={categoryWidths[idx] || 200}
               onHover={onHover}
+              onClick={onClick}
+              isPinned={isPinned}
             />
           </div>
         ))}
@@ -385,6 +451,7 @@ function LayerSection({
 
 export function MessariStyleMap({ config }: MessariStyleMapProps) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
+  const [pinnedTooltip, setPinnedTooltip] = useState<TooltipData | null>(null)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800)
 
@@ -397,10 +464,38 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Handle click to pin/unpin tooltip
+  const handleCompanyClick = useCallback((data: TooltipData) => {
+    if (pinnedTooltip?.company.slug === data.company.slug) {
+      // Clicking same company unpins
+      setPinnedTooltip(null)
+    } else {
+      setPinnedTooltip(data)
+    }
+  }, [pinnedTooltip])
+
+  // Close pinned tooltip when clicking outside
+  const handleBackgroundClick = useCallback(() => {
+    if (pinnedTooltip) {
+      setPinnedTooltip(null)
+    }
+  }, [pinnedTooltip])
+
+  // Display pinned tooltip if exists, otherwise hover tooltip
+  const activeTooltip = pinnedTooltip || tooltip
+
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen" onClick={handleBackgroundClick}>
       {/* Tooltip */}
-      {tooltip && <Tooltip data={tooltip} windowWidth={windowWidth} windowHeight={windowHeight} />}
+      {activeTooltip && (
+        <Tooltip
+          data={activeTooltip}
+          windowWidth={windowWidth}
+          windowHeight={windowHeight}
+          isPinned={!!pinnedTooltip}
+          onClose={() => setPinnedTooltip(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="px-6 py-4 flex items-center gap-4">
@@ -425,7 +520,13 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       {/* Map content */}
       <div className="px-6 pb-4">
         {config.layers.map((layer, idx) => (
-          <LayerSection key={idx} layer={layer} onHover={setTooltip} />
+          <LayerSection
+            key={idx}
+            layer={layer}
+            onHover={setTooltip}
+            onClick={handleCompanyClick}
+            isPinned={!!pinnedTooltip}
+          />
         ))}
       </div>
 
