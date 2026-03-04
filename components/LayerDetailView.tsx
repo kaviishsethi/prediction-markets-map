@@ -459,11 +459,13 @@ export function LayerDetailView({ layer }: { layer: LayerData }) {
           <div className="h-6 w-px bg-gray-300" />
 
           {/* Artemis Logo */}
-          <img
-            src="/artemis-logo.svg"
-            alt="Artemis"
-            className="h-10 w-10"
-          />
+          <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer">
+            <img
+              src="/artemis-logo.svg"
+              alt="Artemis"
+              className="h-10 w-10 hover:opacity-80 transition-opacity"
+            />
+          </a>
 
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -502,14 +504,14 @@ export function LayerDetailView({ layer }: { layer: LayerData }) {
           })}</div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img
             src="/artemis-logo.svg"
             alt="Artemis"
             className="h-6 w-6"
           />
           <span className="font-semibold text-gray-700 text-sm">Artemis</span>
-        </div>
+        </a>
       </div>
     </div>
   )

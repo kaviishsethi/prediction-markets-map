@@ -542,11 +542,13 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       {/* Header */}
       <div className="px-6 flex items-center gap-4" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
         {/* Artemis Logo */}
-        <img
-          src="/artemis-logo.svg"
-          alt="Artemis"
-          className="h-12 w-12"
-        />
+        <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer">
+          <img
+            src="/artemis-logo.svg"
+            alt="Artemis"
+            className="h-12 w-12 hover:opacity-80 transition-opacity"
+          />
+        </a>
 
         <h1 className="text-4xl font-bold text-gray-900">
           {config.title}
@@ -578,14 +580,14 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
         </div>
 
         {/* Artemis branding */}
-        <div className="flex items-center gap-2">
+        <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img
             src="/artemis-logo.svg"
             alt="Artemis"
             className="h-6 w-6"
           />
           <span className="font-semibold text-gray-700 text-sm">Artemis</span>
-        </div>
+        </a>
       </div>
     </div>
   )
