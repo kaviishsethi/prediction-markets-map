@@ -68,13 +68,29 @@ Create these columns:
 | Column | Header | Description |
 |--------|--------|-------------|
 | A | Company Name | Must match exactly with companies tab |
-| B | Twitter URL | Twitter profile URL |
-| C | Logo URL | Direct image URL (e.g., pbs.twimg.com) |
+| B | Twitter URL | Twitter/X profile URL (e.g., https://x.com/openai) |
+| C | Logo URL | Direct image URL from Twitter/X profile |
 
-**TIP:** To get Twitter profile images:
-1. Go to the company's Twitter profile
-2. Right-click their profile picture → "Copy image address"
-3. Paste into column C
+**IMPORTANT: X/Twitter Profile Pictures Work Best**
+
+X (Twitter) profile picture URLs are the most reliable for logos because:
+- They're consistently sized (400x400)
+- They don't require authentication
+- They rarely break or change domains
+- They work well with Next.js Image component
+
+**How to get X profile picture URLs:**
+1. Go to the company's X/Twitter profile
+2. Click on their profile picture to expand it
+3. Right-click the expanded image → **"Copy image address"**
+4. Paste into column C
+
+The URL should look like:
+```
+https://pbs.twimg.com/profile_images/1234567890/image_400x400.jpg
+```
+
+**DO NOT** copy the profile page URL (https://x.com/company) - you need the direct image URL from `pbs.twimg.com`.
 
 ### 2.4 Get the Spreadsheet ID
 
@@ -292,16 +308,25 @@ const BRAND_COLOR = '#7C3AED' // Your hex color
 
 ### 5.4 Configure Next.js Image Domains
 
-Edit `next.config.js` to allow image domains:
+Edit `next.config.mjs` to allow all image domains (recommended for flexibility):
 
 ```javascript
-images: {
-  remotePatterns: [
-    { hostname: 'pbs.twimg.com', protocol: 'https' },
-    // Add other domains where logos are hosted
-  ],
-},
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',  // Allow all HTTPS domains
+      },
+    ],
+  },
+}
+
+export default nextConfig
 ```
+
+This wildcard pattern allows logos from any HTTPS domain, avoiding the need to whitelist each domain individually.
 
 ---
 
@@ -407,7 +432,7 @@ curl https://your-domain.vercel.app/api/revalidate?secret=YOUR_SECRET
 
 ### Adding New Logos
 
-1. Add row to Google Sheet `logos` tab
+1. Add row to Google Sheet `logos` tab (use X profile picture URLs - see section 2.3)
 2. Run sync: `curl -X POST https://your-domain.vercel.app/api/sync-logos`
 
 ### Adding New Categories
@@ -420,6 +445,31 @@ VALUES ('new-category', 'New Category', 'LAYER_NAME');
 
 2. Update `CATEGORY_LAYERS` and `CATEGORY_ORDER` in code
 3. Redeploy
+
+### Renaming a Company
+
+Use the rename API:
+```bash
+curl -X POST http://localhost:3000/api/rename-company \
+  -H "Content-Type: application/json" \
+  -d '{"oldName": "Old Name", "newName": "New Name", "newWebsite": "https://newsite.com"}'
+```
+
+This updates both the metadata and category entries in Supabase.
+
+### Removing Companies
+
+1. Use the cleanup API to remove from Supabase
+2. Use delete-from-sheet API to remove from all Sheet tabs:
+```bash
+curl -X POST http://localhost:3000/api/delete-from-sheet
+```
+
+### Marking Companies as Acquired/Merged
+
+Update the `company_status` field in Supabase:
+- `'acquired'` - Shows orange "Acquired" badge in tooltip
+- `'merged'` - Shows purple "Merged" badge in tooltip
 
 ### Updating Market Caps
 
@@ -456,19 +506,25 @@ Market caps can be updated in the Google Sheet. Run sync to push changes.
 ```
 ├── app/
 │   ├── api/
-│   │   ├── sync/route.ts         # Sync from Sheet to Supabase
-│   │   └── sync-logos/route.ts   # Sync logos from Sheet
-│   ├── map/page.tsx              # Market map page
-│   └── treemap/page.tsx          # Treemap page
+│   │   ├── sync/route.ts              # Sync companies from Sheet to Supabase
+│   │   ├── sync-logos/route.ts        # Sync logos from Sheet
+│   │   ├── rename-company/route.ts    # Rename a company in Supabase
+│   │   ├── delete-from-sheet/route.ts # Delete rows from all Sheet tabs
+│   │   ├── cleanup/route.ts           # Bulk remove companies
+│   │   ├── check-company/route.ts     # Debug: check company in Supabase
+│   │   ├── check-logos/route.ts       # Debug: check logo sync status
+│   │   └── map-data/route.ts          # Get map statistics
+│   ├── map/page.tsx                   # Market map page
+│   └── treemap/page.tsx               # Treemap page (if enabled)
 ├── components/
-│   └── MessariStyleMap.tsx       # Main map component
+│   └── MessariStyleMap.tsx            # Main map component with tooltips
 ├── database/
-│   └── api.ts                    # Supabase data fetching
+│   └── api.ts                         # Supabase data fetching
 ├── lib/
-│   ├── google-sheets.ts          # Google Sheets integration
-│   └── supabase.ts               # Supabase client
-├── .env.local                    # Environment variables
-└── next.config.js                # Next.js configuration
+│   ├── google-sheets.ts               # Google Sheets integration
+│   └── supabase.ts                    # Supabase client
+├── .env.local                         # Environment variables (git-ignored)
+└── next.config.mjs                    # Next.js configuration
 ```
 
 ---
@@ -482,8 +538,26 @@ npm run dev
 # Sync companies from Sheet to Supabase
 curl -X POST http://localhost:3000/api/sync
 
-# Sync logos
+# Sync logos (run after adding logos to Sheet)
 curl -X POST http://localhost:3000/api/sync-logos
+
+# Rename a company
+curl -X POST http://localhost:3000/api/rename-company \
+  -H "Content-Type: application/json" \
+  -d '{"oldName": "Old Name", "newName": "New Name"}'
+
+# Check a company's data in Supabase
+curl http://localhost:3000/api/check-company?name=companyname
+
+# Check logo sync status
+curl http://localhost:3000/api/check-logos
+
+# Get map statistics (company counts per category)
+curl http://localhost:3000/api/map-data
+
+# Delete companies from Sheet (preview first with GET)
+curl http://localhost:3000/api/delete-from-sheet      # Preview
+curl -X POST http://localhost:3000/api/delete-from-sheet  # Execute
 
 # Build for production
 npm run build
@@ -491,3 +565,14 @@ npm run build
 # Check for TypeScript errors
 npm run lint
 ```
+
+## Tooltip Features
+
+The map tooltip displays:
+- Company name with status badge (Public/Private/Acquired/Merged)
+- Stock ticker (if public)
+- Market cap or valuation
+- Full description (expands to fit)
+- Website URL
+- Twitter/X handle
+- Company logo (48px, top-right corner)
