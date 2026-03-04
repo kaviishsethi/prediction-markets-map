@@ -437,56 +437,51 @@ Verify:
 
 > "Now let's put your map on the internet so anyone can see it!"
 
-### 8.1 Create a Vercel Account
+We deploy to the **artemis-xyz** Vercel team. Claude handles this automatically.
 
-1. Go to [Vercel](https://vercel.com)
-2. Click **Sign Up**
-3. Choose **Continue with GitHub** (easiest option)
-4. If you don't have GitHub, choose **Continue with Email**
+### 8.1 Deploy with Vercel CLI
 
-### 8.2 Connect Your Project
+**CLAUDE RUNS THESE COMMANDS:**
 
-**Option A: If you have GitHub**
-
-Claude will push your code to GitHub first:
 ```bash
-# Claude runs these commands
-git init
-git add .
-git commit -m "Initial market map setup"
-# Then guides user through creating a GitHub repo
+# Link to the artemis-xyz Vercel team
+vercel link --yes --scope artemis-xyz
+
+# Add environment variables (Claude does this automatically)
+vercel env add NEXT_PUBLIC_SUPABASE_URL production
+vercel env add NEXT_PUBLIC_SUPABASE_API_KEY production
+vercel env add SUPABASE_SERVICE_ROLE_KEY production
+vercel env add GOOGLE_SHEETS_ID production
+vercel env add GOOGLE_SERVICE_ACCOUNT_EMAIL production
+vercel env add GOOGLE_PRIVATE_KEY production
+vercel env add TABLE_PREFIX production
+
+# Deploy to production
+vercel --prod --yes
 ```
 
-Then on Vercel:
-1. Click **Add New** → **Project**
-2. Find your repository and click **Import**
+### 8.2 Environment Variables
 
-**Option B: If you don't have GitHub**
-
-1. On Vercel, click **Add New** → **Project**
-2. Choose **Import Third-Party Git Repository**
-3. Or use **Vercel CLI** (Claude can help install this)
-
-### 8.3 Add Your Environment Variables
-
-Before deploying, Vercel needs your credentials:
-
-1. On the project setup page, expand **Environment Variables**
-2. Add each of these (copy the values from your `.env.local` file):
+Claude will add these automatically using the values from your `.env.local`:
 
 | Name | Where to find it |
 |------|------------------|
 | `GOOGLE_SHEETS_ID` | The long string in your Google Sheet URL |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | From the JSON key file |
 | `GOOGLE_PRIVATE_KEY` | From the JSON key file (include the whole thing with `-----BEGIN` and `-----END`) |
-| `NEXT_PUBLIC_SUPABASE_URL` | From project owner |
-| `NEXT_PUBLIC_SUPABASE_API_KEY` | From project owner |
-| `SUPABASE_SERVICE_ROLE_KEY` | From project owner |
+| `NEXT_PUBLIC_SUPABASE_URL` | Already in skill (shared) |
+| `NEXT_PUBLIC_SUPABASE_API_KEY` | Already in skill (shared) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Already in skill (shared) |
 | `TABLE_PREFIX` | Your sector prefix (e.g., `defi_`) |
 
-3. Click **Deploy**
-4. Wait 1-2 minutes for it to build
-5. 🎉 Your map is live! Vercel gives you a URL like `your-project.vercel.app`
+### 8.3 Deployment Complete
+
+After deployment, you'll get a URL like:
+- `https://<project-name>-artemis-xyz.vercel.app`
+
+The base URL automatically redirects to `/map`.
+
+🎉 Your map is live!
 
 ### 8.3 Set Up Auto-Revalidation (Optional)
 
