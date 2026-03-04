@@ -334,9 +334,9 @@ function LayerSection({
   return (
     <div className="mb-4 mt-3 relative">
       {/* Layer title - positioned on top border */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-3.5 px-3 bg-white z-10">
+      <div className="absolute left-1/2 -translate-x-1/2 -top-4 px-3 bg-white z-10">
         <span
-          className="text-base font-bold whitespace-nowrap"
+          className="text-lg font-bold whitespace-nowrap"
           style={{ color: ARTEMIS_PURPLE }}
         >
           {layer.name}
