@@ -9,7 +9,6 @@ const ARTEMIS_PURPLE = '#7C3AED'
 
 // Spacing constants (matching main map)
 const SECTION_SPACING = 4 // Space between header/content/footer
-const DIVIDER_MARGIN = 4 // Equal margin from top and bottom for category dividers
 
 // Company cell dimensions for detail view (larger logos than main map)
 const LOGO_SIZE = 52

@@ -15,7 +15,6 @@ const CELL_GAP = 4 // gap-1 = 4px
 const CATEGORY_PADDING = 16 // px-2 = 8px * 2
 const ROW_GAP = 4 // gap-1 between rows
 const DIVIDER_MARGIN = 4 // Equal margin from top and bottom for category dividers
-const LAYER_TITLE_WIDTH = 24 // Width reserved for vertical layer title on left
 const SECTION_SPACING = 4 // Space between header/layers/footer
 
 interface Company {

@@ -9,7 +9,7 @@ export async function GET() {
     let totalCompanies = 0
     const categoryCounts: Record<string, number> = {}
 
-    for (const [slug, category] of Object.entries(data)) {
+    for (const [, category] of Object.entries(data)) {
       categoryCounts[category.label] = category.protocols.length
       totalCompanies += category.protocols.length
     }

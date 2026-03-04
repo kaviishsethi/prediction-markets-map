@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin, TABLES } from '@/lib/supabase'
 import { getSheetData, getGoogleSheetsClient } from '@/lib/google-sheets'
-import { getCategorySlug } from '@/constants/categories'
 
 // Companies to remove completely
 const COMPANIES_TO_REMOVE = [
@@ -111,11 +110,10 @@ export async function POST() {
       }
 
       // Delete from protocols_metadata
-      const { error: metaError, count } = await supabaseAdmin
+      const { error: metaError } = await supabaseAdmin
         .from(TABLES.protocols_metadata)
         .delete()
         .eq('protocol', slug)
-        .select('*', { count: 'exact' })
 
       if (metaError) {
         results.push(`Error deleting ${name} from metadata: ${metaError.message}`)
