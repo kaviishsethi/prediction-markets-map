@@ -99,3 +99,46 @@ export async function getLogosData(): Promise<LogoRow[]> {
     logoUrl: row[2] || '',
   })).filter(row => row.companyName && row.logoUrl)
 }
+
+export interface NewCompanyRow {
+  companyName: string
+  website: string
+  category: string
+  description: string
+  logoUrl: string
+  twitter: string
+  isPublic: boolean
+  ticker: string
+  marketCap: string
+  projectPage: string
+}
+
+export async function appendCompanyRow(company: NewCompanyRow): Promise<void> {
+  const sheets = await getGoogleSheetsClient()
+  const spreadsheetId = process.env.GOOGLE_SHEETS_ID
+
+  const timestamp = new Date().toISOString()
+  const row = [
+    timestamp,                              // A: Timestamp
+    company.companyName,                    // B: Company Name
+    company.website,                        // C: Website
+    company.category,                       // D: Category
+    company.description,                    // E: Description
+    company.logoUrl,                        // F: Logo URL
+    company.twitter,                        // G: Twitter
+    company.isPublic ? 'Public' : 'Private', // H: Public/Private
+    company.ticker,                         // I: Ticker
+    company.marketCap,                      // J: MC or Valuation
+    company.projectPage,                    // K: Project Page
+    'Done',                                 // L: Status (ready to sync)
+  ]
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: 'companies!A:L',
+    valueInputOption: 'RAW',
+    requestBody: {
+      values: [row],
+    },
+  })
+}

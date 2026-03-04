@@ -1,70 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin, TABLES } from '@/lib/supabase'
+import { upsertProtocolCategory, getProtocolMetadata } from '@/database/api'
+import { getCategorySlug } from '@/constants/categories'
+
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { protocol, category, description, website } = body
+    const { company, category } = body as { company: string; category: string }
 
-    if (!protocol || !category || !description) {
+    if (!company || !category) {
       return NextResponse.json(
-        { error: 'protocol, category, and description are required' },
+        { error: 'company and category required' },
         { status: 400 }
       )
     }
 
-    // Check if protocol exists
-    const { data: existing } = await supabaseAdmin
-      .from(TABLES.protocols_metadata)
-      .select('protocol, website')
-      .eq('protocol', protocol)
-      .single()
+    const slug = generateSlug(company)
+    const categorySlug = getCategorySlug(category)
 
-    if (!existing) {
+    if (!categorySlug) {
       return NextResponse.json(
-        { error: `Protocol "${protocol}" not found` },
+        { error: `Invalid category: ${category}` },
+        { status: 400 }
+      )
+    }
+
+    // Verify company exists
+    const metadata = await getProtocolMetadata(slug)
+    if (!metadata) {
+      return NextResponse.json(
+        { error: `Company not found: ${company} (slug: ${slug})` },
         { status: 404 }
       )
     }
 
-    // Check if category entry already exists
-    const { data: existingCat } = await supabaseAdmin
-      .from(TABLES.protocols_categories)
-      .select('id')
-      .eq('protocol', protocol)
-      .eq('category', category)
-      .single()
-
-    if (existingCat) {
-      return NextResponse.json(
-        { error: `Protocol "${protocol}" already has category "${category}"` },
-        { status: 409 }
-      )
-    }
-
-    // Insert the category
-    const { error: insertError } = await supabaseAdmin
-      .from(TABLES.protocols_categories)
-      .insert({
-        protocol,
-        category,
-        description,
-        website: website || existing.website,
-        twitter: null,
-      })
-
-    if (insertError) throw insertError
+    // Add company to category
+    await upsertProtocolCategory({
+      protocol: slug,
+      category: categorySlug,
+      description: metadata.description,
+      website: metadata.website,
+      twitter: metadata.twitter,
+    })
 
     return NextResponse.json({
       success: true,
-      protocol,
-      category,
-      description,
+      company,
+      category: categorySlug,
     })
   } catch (error) {
-    console.error('Add category error:', error)
     return NextResponse.json(
-      { error: 'Failed to add category', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed', details: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 }
     )
   }

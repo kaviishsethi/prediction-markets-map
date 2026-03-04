@@ -168,6 +168,22 @@ export async function insertProtocolCategory(protocolCategory: Omit<ProtocolCate
   if (error) throw error
 }
 
+export async function upsertProtocolMetadata(metadata: Omit<ProtocolMetadata, 'id' | 'created_at'>): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from(TABLES.protocols_metadata)
+    .upsert(metadata, { onConflict: 'protocol' })
+
+  if (error) throw error
+}
+
+export async function upsertProtocolCategory(protocolCategory: Omit<ProtocolCategory, 'id'>): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from(TABLES.protocols_categories)
+    .upsert(protocolCategory, { onConflict: 'protocol,category' })
+
+  if (error) throw error
+}
+
 export async function deleteProtocol(protocol: string): Promise<void> {
   // Delete from protocols_categories first (foreign key constraint)
   const { error: catError } = await supabaseAdmin

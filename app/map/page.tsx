@@ -139,7 +139,7 @@ function transformToConfig(
 
   return {
     title: 'AI Landscape Market Map',
-    subtitle: 'A comprehensive view of the AI ecosystem',
+    subtitle: 'A comprehensive view of the AI stack',
     layers,
     maxCompaniesPerCategory,
     dataAsOf: new Date().toLocaleDateString('en-US', {
@@ -147,7 +147,6 @@ function transformToConfig(
       month: 'long',
       day: 'numeric'
     }),
-    footnote: 'Note: This map is not comprehensive.',
   }
 }
 

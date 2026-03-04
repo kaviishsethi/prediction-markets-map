@@ -1,6 +1,10 @@
-# Market Map Setup Skill
+# Market Map Skill
 
-Create a Messari-style market map for any sector. This skill walks through the complete setup process including Google Sheets, Supabase, Vercel, and the codebase.
+Create and maintain a Messari-style market map for any sector. This skill covers:
+- **Setup**: Google Sheets, Supabase, Vercel, and codebase configuration
+- **Research**: Adding new companies with proper categorization, descriptions, and valuations
+- **Verification**: Updating market caps, valuations, and tracking M&A activity
+- **X Profile Integration**: Finding and syncing Twitter/X profile pictures
 
 ---
 
@@ -576,3 +580,390 @@ The map tooltip displays:
 - Website URL
 - Twitter/X handle
 - Company logo (48px, top-right corner)
+
+---
+
+# PART 2: Research Workflow
+
+This section covers the research process for adding new companies and verifying data.
+
+---
+
+## Adding a New Company (Complete Workflow)
+
+When adding a new company, follow this complete research workflow:
+
+### Step 1: Gather Basic Information
+
+1. **Company Name**: Official company name
+2. **Website**: Official website URL
+3. **Category**: Which market map category does it belong to?
+4. **Public/Private**: Is it publicly traded?
+
+### Step 2: Find X (Twitter) Profile
+
+Use the x402 API to find and verify the company's X profile:
+
+```javascript
+// Use mcp__x402__fetch tool
+mcp__x402__fetch({
+  url: "https://x402.twit.sh/users/by/username?username=<handle>"
+})
+```
+
+**Common handle patterns to try:**
+- `@CompanyName` (e.g., @AMD, @Intel)
+- `@CompanyNameHQ` (e.g., @NotionHQ, @AbridgeHQ)
+- `@CompanyName_AI` or `@CompanyNameAI` (e.g., @deepseek_ai, @perplexity_ai)
+- `@CompanyNameInc` (e.g., @GroqInc)
+- `@CompanyName_io` (e.g., @n8n_io, @weaviate_io)
+
+**Verification checklist:**
+- [ ] Follower count is reasonable (official accounts usually have many followers)
+- [ ] Verified status (blue checkmark)
+- [ ] Description matches the company's business
+- [ ] Location matches company headquarters
+- [ ] Website link points to official site
+
+**Cost**: $0.01 per lookup via x402
+
+### Step 3: Research Market Cap / Valuation
+
+#### For Public Companies
+
+Search for current market cap using web search:
+
+```
+WebSearch: "{Company Name} {TICKER} market cap March 2026"
+```
+
+**Primary sources (in order of preference):**
+1. [Yahoo Finance](https://finance.yahoo.com/quote/{TICKER})
+2. [Companies Market Cap](https://companiesmarketcap.com/{company})
+3. [Stock Analysis](https://stockanalysis.com/stocks/{ticker}/market-cap/)
+4. [MacroTrends](https://www.macrotrends.net/stocks/charts/{TICKER}/{company}/market-cap)
+
+**Format market cap consistently:**
+- Trillions: `$1.5T`, `$2.3T`
+- Billions: `$150B`, `$45B`
+- Millions: `$500M` (rare for this map)
+
+#### For Private Companies
+
+Search for latest valuation:
+
+```
+WebSearch: "{Company Name} valuation 2026"
+```
+
+**Primary sources (in order of preference):**
+1. [TechCrunch](https://techcrunch.com) - funding announcements
+2. [Crunchbase News](https://news.crunchbase.com)
+3. [CNBC](https://cnbc.com) - major funding rounds
+4. [PitchBook](https://pitchbook.com/profiles/company/) - requires login
+5. [The Information](https://theinformation.com) - paywalled but often cited
+
+**What to look for:**
+- Latest funding round date and amount
+- Post-money valuation (not pre-money)
+- Lead investors (validates legitimacy)
+- Revenue metrics if available (ARR, run rate)
+
+### Step 4: Write Description
+
+Write a concise description (1-2 sentences) covering:
+- What the company does
+- Key differentiator or technology
+- Target market (enterprise, consumer, developer)
+
+**Examples:**
+```
+"Enterprise data security platform providing cyber resilience, data protection, and backup solutions. Uses AI for ransomware detection and automated recovery."
+
+"AI-powered search engine that provides direct answers with citations. Combines LLM capabilities with real-time web search."
+
+"Provides TensorRT and Triton Inference Server for optimized model deployment, enabling 10-100x speedups in production AI serving."
+```
+
+### Step 5: Add to Google Sheet
+
+Use the update scripts or add directly to the sheet:
+
+```bash
+# For companies tab
+node -e "
+import { google } from 'googleapis';
+// ... auth setup ...
+
+const rubrikRow = [
+  new Date().toISOString(),  // Timestamp
+  'Company Name',            // Company Name
+  'https://company.com',     // Website
+  'Category Name',           // Category (must match Supabase)
+  'Description here...',     // Description
+  'https://pbs.twimg.com/profile_images/...', // Logo URL (from X)
+  'https://x.com/handle',    // Twitter
+  'Public',                  // or 'Private'
+  '\$TICKER',                // Stock ticker or empty
+  '\$XXB',                   // Market cap or valuation
+  '',                        // Project Page (optional)
+  'Synced'                   // Status
+];
+
+await sheets.spreadsheets.values.append({
+  spreadsheetId: env.GOOGLE_SHEETS_ID,
+  range: 'companies!A:L',
+  valueInputOption: 'RAW',
+  requestBody: { values: [rubrikRow] },
+});
+"
+```
+
+### Step 6: Add to Logos Tab
+
+Add the X profile info to the logos tab:
+
+```bash
+node scripts/update-logo-row.mjs <rowIndex> "https://x.com/handle" "https://pbs.twimg.com/profile_images/.../image_400x400.jpg"
+```
+
+**Important:** Replace `_normal` with `_400x400` in profile image URLs for high resolution.
+
+### Step 7: Sync to Supabase
+
+```bash
+curl -X POST http://localhost:3000/api/sync
+curl -X POST http://localhost:3000/api/sync-logos
+```
+
+---
+
+## Verifying Market Caps & Valuations (Batch Update)
+
+Periodically verify all market caps and valuations are current.
+
+### Step 1: Export Current Data
+
+```bash
+node scripts/get-companies-for-verification.mjs
+```
+
+This outputs all companies grouped by public/private status.
+
+### Step 2: Batch Verify Public Companies
+
+For each public company, search for current market cap:
+
+```
+WebSearch: "{Company} {TICKER} market cap {current month} {current year}"
+```
+
+**Track changes in a list:**
+```
+| Company | Previous | Current | Change |
+|---------|----------|---------|--------|
+| Tesla   | $780B    | $1.5T   | +92%   |
+| Adobe   | $180B    | $110B   | -39%   |
+```
+
+### Step 3: Batch Verify Private Companies
+
+For private companies, check for recent funding rounds:
+
+```
+WebSearch: "{Company} valuation {current year}"
+WebSearch: "{Company} funding round {current year}"
+```
+
+### Step 4: Apply Updates
+
+Create an update script or use the existing one:
+
+```bash
+node scripts/update-market-caps.mjs
+```
+
+**Update script pattern:**
+```javascript
+const marketCapUpdates = {
+  "Tesla": "$1.5T",
+  "Adobe": "$110B",
+  "OpenAI": "$840B",
+  // ... more updates
+};
+
+// Batch update the sheet
+await sheets.spreadsheets.values.batchUpdate({
+  spreadsheetId,
+  requestBody: {
+    valueInputOption: "RAW",
+    data: updates,
+  },
+});
+```
+
+---
+
+## Tracking M&A Activity
+
+### Types of M&A Events
+
+1. **Acquisition**: Company was acquired by another company
+2. **Merger**: Two companies merged into one
+3. **Spin-off**: Division became independent company
+4. **IPO**: Private company went public
+
+### How to Track
+
+When researching valuations, watch for M&A news:
+
+```
+WebSearch: "{Company} acquisition 2026"
+WebSearch: "{Company} merger 2026"
+WebSearch: "{Company} IPO 2026"
+```
+
+### Updating the Sheet
+
+For acquisitions/mergers, update the `company_status` field:
+- Set to `'acquired'` - Shows orange "Acquired" badge
+- Set to `'merged'` - Shows purple "Merged" badge
+
+For IPOs, update:
+- Change `Public/Private` from "Private" to "Public"
+- Add stock ticker
+- Update valuation to market cap
+
+**Recent M&A Examples (2025-2026):**
+- Figma: IPO'd July 2025 (NYSE: FIG)
+- SanDisk: Spun off from Western Digital (Feb 2025)
+- xAI: Merged with SpaceX (Feb 2026)
+- Groq: Assets acquired by Nvidia for $20B (Dec 2025)
+
+---
+
+## Scripts Reference
+
+### Available Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/get-todo.mjs` | List companies missing X profile URLs |
+| `scripts/update-logo-row.mjs <row> <url> <pic>` | Update a row with X profile and picture |
+| `scripts/list-companies.mjs` | List all companies from the companies tab |
+| `scripts/get-companies-for-verification.mjs` | Export companies for market cap verification |
+| `scripts/update-market-caps.mjs` | Apply batch market cap updates |
+| `scripts/setup-logos-tab.mjs` | Initial logos tab setup |
+
+### Creating New Scripts
+
+Scripts should follow this pattern:
+
+```javascript
+import { google } from "googleapis";
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const envFile = readFileSync(join(__dirname, "..", ".env.local"), "utf-8");
+const env = {};
+envFile.split("\n").forEach(line => {
+  const match = line.match(/^([^#=]+)=(.*)$/);
+  if (match) {
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"'))) value = value.slice(1, -1);
+    env[match[1].trim()] = value;
+  }
+});
+
+const auth = new google.auth.GoogleAuth({
+  credentials: {
+    client_email: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  },
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
+
+const sheets = google.sheets({ version: "v4", auth });
+const spreadsheetId = env.GOOGLE_SHEETS_ID;
+
+// Your script logic here...
+```
+
+---
+
+## x402 API Reference
+
+The x402 MCP provides authenticated Twitter/X data.
+
+### Check Wallet Balance
+
+```javascript
+mcp__x402__get_wallet_info()
+```
+
+### Look Up X Profile
+
+```javascript
+mcp__x402__fetch({
+  url: "https://x402.twit.sh/users/by/username?username=CompanyHandle"
+})
+```
+
+**Response includes:**
+- `username`, `name`, `description`
+- `verified`, `verified_type`
+- `profile_image_url` (use `_400x400` version)
+- `public_metrics.followers_count`
+- `location`
+
+**Cost:** $0.01 per lookup
+
+### Top Up Wallet
+
+If balance is low, deposit at:
+```
+https://x402scan.com/mcp/deposit/{wallet_address}
+```
+
+---
+
+## Data Quality Checklist
+
+Before syncing, verify:
+
+- [ ] **Company names** are official and consistent
+- [ ] **Categories** match exactly with Supabase categories
+- [ ] **Descriptions** are concise (1-2 sentences) and accurate
+- [ ] **Market caps** are current (within last month)
+- [ ] **Valuations** reflect latest funding round
+- [ ] **Tickers** use proper format (`$NVDA` not `NVDA`)
+- [ ] **X profiles** are verified official accounts
+- [ ] **Logo URLs** use `_400x400` resolution
+- [ ] **Public/Private** status is accurate
+- [ ] **M&A status** is noted for acquired/merged companies
+
+---
+
+## Quick Research Commands
+
+```bash
+# Check remaining companies needing X profiles
+node scripts/get-todo.mjs
+
+# Export all companies for verification
+node scripts/get-companies-for-verification.mjs
+
+# Update a single company's logo
+node scripts/update-logo-row.mjs 84 "https://x.com/rubrikInc" "https://pbs.twimg.com/.../image_400x400.jpg"
+
+# Sync X profile data from logos tab to companies tab
+# (ensures Logo URL and Twitter columns are populated)
+node -e "
+// ... sync script that copies from logos tab to companies tab
+"
+
+# Apply batch market cap updates
+node scripts/update-market-caps.mjs
+```

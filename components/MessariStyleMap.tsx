@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 // Artemis brand purple
 const ARTEMIS_PURPLE = '#7C3AED'
@@ -13,6 +14,9 @@ const CELL_HEIGHT = 54 // Fixed height: logo (32) + gap (2) + 2-line text (~20)
 const CELL_GAP = 4 // gap-1 = 4px
 const CATEGORY_PADDING = 16 // px-2 = 8px * 2
 const ROW_GAP = 4 // gap-1 between rows
+const DIVIDER_MARGIN = 4 // Equal margin from top and bottom for category dividers
+const LAYER_TITLE_WIDTH = 24 // Width reserved for vertical layer title on left
+const SECTION_SPACING = 4 // Space between header/layers/footer
 
 interface Company {
   name: string
@@ -295,13 +299,22 @@ function CompanyCell({
         <PlaceholderLogo name={company.name} />
       )}
       <span
-        className="text-gray-700 text-center leading-tight mt-0.5 line-clamp-2 overflow-hidden"
+        className="text-gray-900 text-center leading-tight mt-0.5 line-clamp-2 overflow-hidden"
         style={{ fontSize: 7, width: CELL_WIDTH - 4, height: 18 }}
       >
         {company.name}
       </span>
     </div>
   )
+}
+
+// Calculate gap to fill available width
+function calculateGapForRow(itemCount: number, targetWidth: number): number {
+  if (itemCount <= 1) return CELL_GAP
+  const totalCellWidth = itemCount * CELL_WIDTH
+  const availableGapSpace = targetWidth - totalCellWidth
+  const gap = availableGapSpace / (itemCount - 1)
+  return Math.max(CELL_GAP, gap)
 }
 
 // Responsive category section
@@ -326,9 +339,13 @@ function CategorySection({
   const maxCompanies = companiesPerRow * 2
   const displayCompanies = category.companies.slice(0, maxCompanies)
 
-  // Split into rows for center alignment
+  // Split into rows
   const row1 = displayCompanies.slice(0, companiesPerRow)
   const row2 = displayCompanies.slice(companiesPerRow)
+
+  // Calculate gap for each row to fill the effective width
+  const row1Gap = calculateGapForRow(row1.length, effectiveWidth)
+  const row2Gap = calculateGapForRow(row2.length, effectiveWidth)
 
   return (
     <div className="flex flex-col">
@@ -340,19 +357,19 @@ function CategorySection({
         {category.name} <span className="font-normal text-gray-400">({category.companies.length})</span>
       </div>
 
-      {/* Companies - always two rows with fixed height, both centered */}
+      {/* Companies - always two rows with fixed height, spread to fill width */}
       <div
-        className="flex flex-col px-2 pb-2"
+        className="flex flex-col px-2"
         style={{ gap: ROW_GAP, height: (CELL_HEIGHT * 2) + ROW_GAP }}
       >
         {/* Row 1 */}
-        <div className="flex justify-center" style={{ gap: CELL_GAP, height: CELL_HEIGHT }}>
+        <div className="flex justify-between" style={{ gap: row1Gap, height: CELL_HEIGHT }}>
           {row1.map((company, idx) => (
             <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
         </div>
-        {/* Row 2 - centered, always rendered for consistent height */}
-        <div className="flex justify-center" style={{ gap: CELL_GAP, height: CELL_HEIGHT }}>
+        {/* Row 2 - gap calculated to fill same width */}
+        <div className="flex justify-between" style={{ gap: row2Gap, height: CELL_HEIGHT }}>
           {row2.map((company, idx) => (
             <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
@@ -367,12 +384,14 @@ function LayerSection({
   layer,
   onHover,
   onClick,
-  isPinned
+  isPinned,
+  onLayerClick
 }: {
   layer: Layer
   onHover: (data: TooltipData | null) => void
   onClick: (data: TooltipData) => void
   isPinned: boolean
+  onLayerClick?: (layerName: string) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [categoryWidths, setCategoryWidths] = useState<number[]>([])
@@ -408,23 +427,40 @@ function LayerSection({
     return () => window.removeEventListener('resize', calculateWidths)
   }, [calculateWidths])
 
+  const handleLayerClick = () => {
+    // Only navigate if clicking on the layer background, not on companies
+    // The company cells already stopPropagation, so this only fires for layer area clicks
+    if (onLayerClick) {
+      onLayerClick(layer.name)
+    }
+  }
+
   return (
-    <div className="mb-4 mt-3 relative">
-      {/* Layer title - positioned on top border */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-4 px-3 bg-white z-10">
+    <div className="mb-2 mt-2 relative">
+      {/* Layer title - vertical overlapping left border, reading bottom to top */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white z-10 cursor-pointer hover:opacity-80 transition-opacity py-1"
+        style={{ left: 0 }}
+        onClick={handleLayerClick}
+      >
         <span
-          className="text-lg font-bold whitespace-nowrap"
-          style={{ color: ARTEMIS_PURPLE }}
+          className="text-base font-bold whitespace-nowrap"
+          style={{
+            color: ARTEMIS_PURPLE,
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)'
+          }}
         >
           {layer.name}
         </span>
       </div>
 
-      {/* Container with full border - paddingTop creates space below layer title */}
+      {/* Container with full border - equal padding top/bottom for divider spacing */}
       <div
         ref={containerRef}
-        className="flex rounded-lg overflow-hidden border"
-        style={{ borderColor: ARTEMIS_PURPLE, paddingTop: '0.425rem' }}
+        className="flex rounded-lg overflow-hidden border cursor-pointer hover:border-opacity-80 transition-all"
+        style={{ borderColor: ARTEMIS_PURPLE, paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
+        onClick={handleLayerClick}
       >
         {layer.categories.map((category, idx) => (
           <div
@@ -432,7 +468,7 @@ function LayerSection({
             className="flex-shrink-0"
             style={{
               width: categoryWidths[idx] || 'auto',
-              borderRight: idx < layer.categories.length - 1 ? `1px solid ${ARTEMIS_PURPLE}20` : 'none'
+              borderRight: idx < layer.categories.length - 1 ? `1px solid ${ARTEMIS_PURPLE}30` : 'none'
             }}
           >
             <CategorySection
@@ -450,6 +486,7 @@ function LayerSection({
 }
 
 export function MessariStyleMap({ config }: MessariStyleMapProps) {
+  const router = useRouter()
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [pinnedTooltip, setPinnedTooltip] = useState<TooltipData | null>(null)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -463,6 +500,12 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Navigate to layer detail page
+  const handleLayerClick = useCallback((layerName: string) => {
+    const slug = layerName.toLowerCase().replace(/\s+/g, '-')
+    router.push(`/map/${slug}`)
+  }, [router])
 
   // Handle click to pin/unpin tooltip
   const handleCompanyClick = useCallback((data: TooltipData) => {
@@ -498,14 +541,13 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       )}
 
       {/* Header */}
-      <div className="px-6 py-4 flex items-center gap-4">
+      <div className="px-6 flex items-center gap-4" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
         {/* Artemis Logo */}
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-          style={{ backgroundColor: ARTEMIS_PURPLE }}
-        >
-          A
-        </div>
+        <img
+          src="/artemis-logo.svg"
+          alt="Artemis"
+          className="h-10 w-10"
+        />
 
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -518,7 +560,7 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       </div>
 
       {/* Map content */}
-      <div className="px-6 pb-4">
+      <div className="px-6">
         {config.layers.map((layer, idx) => (
           <LayerSection
             key={idx}
@@ -526,14 +568,15 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
             onHover={setTooltip}
             onClick={handleCompanyClick}
             isPinned={!!pinnedTooltip}
+            onLayerClick={handleLayerClick}
           />
         ))}
       </div>
 
       {/* Footer */}
       <div
-        className="px-6 py-4 border-t flex items-center justify-between"
-        style={{ borderColor: ARTEMIS_PURPLE }}
+        className="px-6 flex items-center justify-between"
+        style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}
       >
         <div className="text-xs text-gray-500">
           {config.dataAsOf && <div>Data as of: {config.dataAsOf}</div>}
@@ -542,12 +585,11 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
 
         {/* Artemis branding */}
         <div className="flex items-center gap-2">
-          <div
-            className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs"
-            style={{ backgroundColor: ARTEMIS_PURPLE }}
-          >
-            A
-          </div>
+          <img
+            src="/artemis-logo.svg"
+            alt="Artemis"
+            className="h-6 w-6"
+          />
           <span className="font-semibold text-gray-700 text-sm">Artemis</span>
         </div>
       </div>

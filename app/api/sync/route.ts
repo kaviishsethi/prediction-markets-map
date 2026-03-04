@@ -5,6 +5,8 @@ import {
   insertProtocolMetadata,
   getProtocolCategory,
   insertProtocolCategory,
+  upsertProtocolMetadata,
+  upsertProtocolCategory,
 } from '@/database/api'
 import { getCategorySlug } from '@/constants/categories'
 
@@ -40,10 +42,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const force = searchParams.get('force') === 'true'
+
   try {
     const rows = await getSheetData()
-    const doneRows = rows.filter((row) => row.status === 'Done')
+    // If force=true, sync all rows with "Done" OR "Synced" status
+    const doneRows = force
+      ? rows.filter((row) => row.status === 'Done' || row.status === 'Synced')
+      : rows.filter((row) => row.status === 'Done')
 
     const results: Array<{
       row: number
@@ -72,9 +80,9 @@ export async function POST() {
       const slug = generateSlug(companyName)
 
       try {
-        // Check if protocol+category already exists
+        // Check if protocol+category already exists (skip duplicate check if force=true)
         const existingProtocolCategory = await getProtocolCategory(slug, categorySlug)
-        if (existingProtocolCategory) {
+        if (existingProtocolCategory && !force) {
           await updateRowStatus(rowIndex, 'Duplicate')
           results.push({
             row: rowIndex,
@@ -97,33 +105,39 @@ export async function POST() {
           }
         }
 
-        // Check if protocol metadata exists
-        const existingMetadata = await getProtocolMetadata(slug)
-        if (!existingMetadata) {
-          // Insert new protocol metadata
-          await insertProtocolMetadata({
-            protocol: slug,
-            name: companyName,
-            description: description || null,
-            logo: logoUrl || null,
-            website: website || null,
-            twitter: twitter || null,
-            artemisProjectPage: projectPage || null,
-            is_public: isPublic,
-            market_cap: parsedMarketCap,
-            ticker: ticker || null,
-            company_status: null,
-          })
+        const metadataPayload = {
+          protocol: slug,
+          name: companyName,
+          description: description || null,
+          logo: logoUrl || null,
+          website: website || null,
+          twitter: twitter || null,
+          artemisProjectPage: projectPage || null,
+          is_public: isPublic,
+          market_cap: parsedMarketCap,
+          ticker: ticker || null,
         }
 
-        // Insert protocol+category
-        await insertProtocolCategory({
+        const categoryPayload = {
           protocol: slug,
           category: categorySlug,
           description: description || null,
           website: website || null,
           twitter: twitter || null,
-        })
+        }
+
+        if (force) {
+          // Use upsert for force sync
+          await upsertProtocolMetadata(metadataPayload)
+          await upsertProtocolCategory(categoryPayload)
+        } else {
+          // Check if protocol metadata exists
+          const existingMetadata = await getProtocolMetadata(slug)
+          if (!existingMetadata) {
+            await insertProtocolMetadata(metadataPayload)
+          }
+          await insertProtocolCategory(categoryPayload)
+        }
 
         // Mark as synced in sheet
         await updateRowStatus(rowIndex, 'Synced')
