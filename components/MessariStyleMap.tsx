@@ -457,8 +457,8 @@ function LayerSection({
       {/* Container with full border - equal padding top/bottom for divider spacing */}
       <div
         ref={containerRef}
-        className="flex rounded-lg overflow-hidden border cursor-pointer hover:border-opacity-80 transition-all"
-        style={{ borderColor: ARTEMIS_PURPLE, paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
+        className="flex rounded-lg overflow-hidden cursor-pointer hover:border-opacity-80 transition-all"
+        style={{ borderColor: ARTEMIS_PURPLE, borderWidth: 2, borderStyle: 'solid', paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
         onClick={handleLayerClick}
       >
         {layer.categories.map((category, idx) => (
@@ -467,7 +467,7 @@ function LayerSection({
             className="flex-shrink-0"
             style={{
               width: categoryWidths[idx] || 'auto',
-              borderRight: idx < layer.categories.length - 1 ? `1px solid ${ARTEMIS_PURPLE}30` : 'none'
+              borderRight: idx < layer.categories.length - 1 ? `2px solid ${ARTEMIS_PURPLE}90` : 'none'
             }}
           >
             <CategorySection
@@ -545,17 +545,12 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
         <img
           src="/artemis-logo.svg"
           alt="Artemis"
-          className="h-10 w-10"
+          className="h-12 w-12"
         />
 
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {config.title}
-          </h1>
-          {config.subtitle && (
-            <p className="text-gray-500 text-sm">{config.subtitle}</p>
-          )}
-        </div>
+        <h1 className="text-4xl font-bold text-gray-900">
+          {config.title}
+        </h1>
       </div>
 
       {/* Map content */}
