@@ -1,50 +1,70 @@
 # Market Map Skill
 
-Create and maintain a Messari-style market map for any sector. This skill covers:
-- **Setup**: Google Sheets, Supabase, Vercel, and codebase configuration
-- **Research**: Adding new companies with proper categorization, descriptions, and valuations
-- **Verification**: Updating market caps, valuations, and tracking M&A activity
-- **X Profile Integration**: Finding and syncing Twitter/X profile pictures
+Create a Messari-style market map for any sector. This skill will walk you through the entire process step-by-step.
 
 ---
 
-## Prerequisites
+## Quick Start
 
-Before starting, ensure you have:
-- Node.js 18+ installed
-- A Google Cloud account (for Sheets API)
-- A Supabase account (free tier works)
-- A Vercel account (for deployment)
-- Git installed
+Just tell Claude Code:
+> "Use the `/marketmap` skill to help me create a market map"
+
+Claude will handle everything - cloning, setup, and guiding you through each step.
 
 ---
 
-## Step 1: Clone the Template Repository
+## Step 1: Get Started
+
+**CLAUDE SHOULD DO THIS AUTOMATICALLY:**
+
+First, ask the user what sector they're building a map for:
+
+**ASK USER:** What sector is this market map for? (e.g., "DeFi", "Gaming", "Fintech", "Climate Tech")
+
+Then clone the template and set up the project:
 
 ```bash
-# Clone the ai-landscape-map template
-git clone <TEMPLATE_REPO_URL> <your-sector>-landscape-map
-cd <your-sector>-landscape-map
+# Clone the template
+git clone https://github.com/anthropics/ai-landscape-map.git <sector>-landscape-map
+
+# Navigate into the project
+cd <sector>-landscape-map
 
 # Install dependencies
 npm install
 ```
 
-**ASK USER:** What sector is this market map for? (e.g., "AI", "DeFi", "Gaming", "Fintech")
+**ASK USER:** Where would you like me to create the project folder? (Default: current directory)
 
-Store the answer as `SECTOR_NAME` for use throughout this guide.
+---
+
+## What You'll Need (Claude Will Help You Set These Up)
+
+Don't worry if you don't have these yet - we'll set them up together:
+
+1. **Google Account** - for the spreadsheet that stores your company data
+2. **Vercel Account** - free hosting for your map (takes 2 minutes to create)
+
+That's it! The database (Supabase) credentials are already included, and the Artemis logo is in the repo.
+
+**Optional:** x402 tools for automatic logo lookups. If you don't have this, no problem - we'll find logos manually.
 
 ---
 
 ## Step 2: Set Up Google Sheets
 
+**CLAUDE WALKS THE USER THROUGH THIS:**
+
 ### 2.1 Create the Spreadsheet
 
-1. Go to [Google Sheets](https://sheets.google.com) and create a new spreadsheet
-2. Name it: `{SECTOR_NAME} Landscape Map Data`
-3. Create two tabs:
-   - `companies` (main data)
-   - `logos` (logo URLs)
+Tell the user:
+> "Let's create your data spreadsheet. I'll guide you through it."
+
+1. Open [Google Sheets](https://sheets.google.com) in your browser
+2. Click the **+** to create a new blank spreadsheet
+3. Name it by clicking "Untitled spreadsheet" at the top and typing: `{SECTOR_NAME} Landscape Map`
+4. At the bottom, you'll see a tab called "Sheet1" - right-click it and rename to `companies`
+5. Click the **+** next to the tab to add another tab, name it `logos`
 
 ### 2.2 Set Up the `companies` Tab
 
@@ -73,28 +93,36 @@ Create these columns:
 |--------|--------|-------------|
 | A | Company Name | Must match exactly with companies tab |
 | B | Twitter URL | Twitter/X profile URL (e.g., https://x.com/openai) |
-| C | Logo URL | Direct image URL from Twitter/X profile |
+| C | Logo URL | Direct image URL (square images work best) |
 
-**IMPORTANT: X/Twitter Profile Pictures Work Best**
+**IMPORTANT: Square Images Work Best**
 
-X (Twitter) profile picture URLs are the most reliable for logos because:
-- They're consistently sized (400x400)
-- They don't require authentication
-- They rarely break or change domains
-- They work well with Next.js Image component
+The map displays logos as circles (cropped from squares). For best results:
+- **Square aspect ratio** (1:1) - 400x400px ideal
+- **Direct image URL** - must end in .jpg, .png, or similar
+- **HTTPS only** - HTTP links won't work
 
-**How to get X profile picture URLs:**
-1. Go to the company's X/Twitter profile
-2. Click on their profile picture to expand it
-3. Right-click the expanded image → **"Copy image address"**
-4. Paste into column C
+**Best Logo Sources (in order of preference):**
 
-The URL should look like:
-```
-https://pbs.twimg.com/profile_images/1234567890/image_400x400.jpg
-```
+1. **X/Twitter Profile Pictures** (Recommended)
+   - Consistently sized (400x400)
+   - Don't require authentication
+   - Rarely break or change domains
 
-**DO NOT** copy the profile page URL (https://x.com/company) - you need the direct image URL from `pbs.twimg.com`.
+   **How to get manually:**
+   1. Go to the company's X/Twitter profile
+   2. Click on their profile picture to expand it
+   3. Right-click the expanded image → **"Copy image address"**
+   4. The URL should look like: `https://pbs.twimg.com/profile_images/1234567890/image_400x400.jpg`
+
+   **DO NOT** copy the profile page URL (https://x.com/company) - you need the direct image URL from `pbs.twimg.com`.
+
+2. **Company Website** - Look for favicon or logo in header
+3. **Clearbit Logo API** - `https://logo.clearbit.com/{domain}`
+4. **GitHub Avatar** - For open source projects
+
+**Automated Lookup (Optional):**
+If you have x402 MCP tools set up, Claude can automatically look up X profile pictures. Otherwise, find logos manually using the steps above.
 
 ### 2.4 Get the Spreadsheet ID
 
@@ -107,71 +135,89 @@ Save this ID for later: `GOOGLE_SHEETS_ID`
 
 ---
 
-## Step 3: Set Up Google Cloud Service Account
+## Step 3: Set Up Google Cloud (So the App Can Read Your Spreadsheet)
+
+**CLAUDE WALKS THE USER THROUGH THIS:**
+
+This lets the app automatically read data from your Google Sheet. It sounds technical but just follow along - it takes about 5 minutes.
 
 ### 3.1 Create a Google Cloud Project
 
+Tell the user:
+> "We need to set up Google Cloud so your app can read the spreadsheet. Don't worry, it's free and I'll guide you through each click."
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project or select an existing one
-3. Note the Project ID
+2. If prompted, sign in with your Google account
+3. You might see a "Select a project" dropdown at the top - click it
+4. Click **New Project** (top right of the popup)
+5. Name it: `{sector}-landscape-map`
+6. Click **Create**
+7. Wait a few seconds, then select your new project from the dropdown
 
 ### 3.2 Enable the Google Sheets API
 
-1. Go to **APIs & Services** → **Library**
-2. Search for "Google Sheets API"
-3. Click **Enable**
+1. In the search bar at the top, type "Google Sheets API" and press Enter
+2. Click on **Google Sheets API** in the results
+3. Click the blue **Enable** button
+4. Wait for it to enable (takes a few seconds)
 
 ### 3.3 Create a Service Account
 
-1. Go to **APIs & Services** → **Credentials**
-2. Click **Create Credentials** → **Service Account**
-3. Name it: `{sector}-landscape-sheets`
+1. In the left sidebar, click **APIs & Services** → **Credentials**
+2. Click **+ Create Credentials** at the top → **Service Account**
+3. Name it: `sheets-reader`
 4. Click **Create and Continue**
-5. Skip the optional steps, click **Done**
+5. Click **Continue** (skip the optional permissions)
+6. Click **Done**
 
-### 3.4 Generate a Key
+### 3.4 Generate a Key File
 
-1. Click on the service account you just created
-2. Go to **Keys** tab
+1. You should see your new service account in the list - click on it
+2. Click the **Keys** tab
 3. Click **Add Key** → **Create new key**
-4. Select **JSON** format
-5. Download the key file
+4. Select **JSON** and click **Create**
+5. A file will download - keep this safe! We'll need it in a minute.
 
-From the JSON file, extract:
-- `client_email` → `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-- `private_key` → `GOOGLE_PRIVATE_KEY`
+**ASK USER:** Did the JSON file download? Can you open it and share the `client_email` value? (It looks like `sheets-reader@your-project.iam.gserviceaccount.com`)
 
-### 3.5 Share the Spreadsheet
+### 3.5 Share the Spreadsheet with Your Service Account
 
-1. Open your Google Spreadsheet
-2. Click **Share**
-3. Add the service account email (from step 3.4)
-4. Give it **Editor** access
+1. Go back to your Google Spreadsheet
+2. Click the green **Share** button (top right)
+3. Paste the `client_email` from the JSON file
+4. Make sure it says **Editor**
+5. Uncheck "Notify people"
+6. Click **Share**
 
 ---
 
-## Step 4: Set Up Supabase
+## Step 4: Supabase Database (Already Set Up!)
 
-### 4.1 Create a Supabase Project
+**CLAUDE EXPLAINS:**
 
-1. Go to [Supabase](https://supabase.com) and sign in
-2. Click **New Project**
-3. Name it: `{sector}-landscape-map`
-4. Choose a strong database password (save it!)
-5. Select a region close to your users
-6. Click **Create new project**
+> "Good news - the database is already set up! We're using a shared Supabase project, so you just need to use these credentials."
 
-### 4.2 Get API Keys
+### 4.1 Shared Supabase Credentials
 
-1. Go to **Settings** → **API**
-2. Copy these values:
-   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon public` key → `NEXT_PUBLIC_SUPABASE_API_KEY`
-   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
+Use these values in your `.env.local` file:
 
-### 4.3 Create Database Tables
+```
+NEXT_PUBLIC_SUPABASE_URL=https://mzukbrgwxstbxzfpzmdd.supabase.co
+NEXT_PUBLIC_SUPABASE_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWticmd3eHN0Ynh6ZnB6bWRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMjIzMjQsImV4cCI6MjA4Nzc5ODMyNH0.Zr_dBZ9OSJoCWxcKZJ9GWJicKx_aKs_EoIsLl2xpUJ4
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWticmd3eHN0Ynh6ZnB6bWRkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjIyMjMyNCwiZXhwIjoyMDg3Nzk4MzI0fQ.-AR3ovfRr4MVsr7KOrE0vlmn4bqso0v93ls6hq9HwlI
+```
 
-Go to **SQL Editor** and run:
+### 4.2 Choose Your Table Prefix
+
+**ASK USER:** What prefix do you want for your tables? (e.g., `defi_`, `gaming_`, `fintech_`)
+
+This keeps your data separate from other maps in the shared database.
+
+### 4.3 Create Your Tables
+
+**CLAUDE RUNS THIS** with the user's chosen prefix:
+
+Connect to Supabase and run this SQL (replace `{prefix}` with the chosen prefix):
 
 ```sql
 -- Categories table
@@ -218,11 +264,7 @@ CREATE INDEX idx_{prefix}_protocols_categories_category ON {prefix}_protocols_ca
 CREATE INDEX idx_{prefix}_protocols_metadata_name ON {prefix}_protocols_metadata(name);
 ```
 
-**ASK USER:** What table prefix do you want to use? (e.g., "ai_", "defi_", "gaming_")
-
-Replace `{prefix}` in the SQL above with the chosen prefix.
-
-### 4.4 Insert Categories
+### 4.3 Insert Categories
 
 Define your sector's categories and layers. Example structure:
 
@@ -247,11 +289,15 @@ INSERT INTO {prefix}_categories (category, label, bucket) VALUES
 
 ---
 
-## Step 5: Configure the Codebase
+## Step 5: Configure the App
 
-### 5.1 Update Environment Variables
+**CLAUDE DOES THIS FOR THE USER:**
 
-Create `.env.local` in the project root:
+Now we'll set up the app with your credentials. Claude will create the config file for you.
+
+### 5.1 Create Your Environment File
+
+Claude creates `.env.local` in the project folder:
 
 ```env
 # Google Sheets
@@ -385,37 +431,62 @@ Verify:
 
 ---
 
-## Step 8: Deploy to Vercel
+## Step 8: Deploy to Vercel (Make It Live!)
 
-### 8.1 Push to GitHub
+**CLAUDE GUIDES THE USER:**
 
+> "Now let's put your map on the internet so anyone can see it!"
+
+### 8.1 Create a Vercel Account
+
+1. Go to [Vercel](https://vercel.com)
+2. Click **Sign Up**
+3. Choose **Continue with GitHub** (easiest option)
+4. If you don't have GitHub, choose **Continue with Email**
+
+### 8.2 Connect Your Project
+
+**Option A: If you have GitHub**
+
+Claude will push your code to GitHub first:
 ```bash
-# Initialize git if needed
+# Claude runs these commands
 git init
-
-# Add remote
-git remote add origin https://github.com/your-org/your-repo.git
-
-# Commit and push
 git add .
 git commit -m "Initial market map setup"
-git push -u origin main
+# Then guides user through creating a GitHub repo
 ```
 
-### 8.2 Deploy on Vercel
+Then on Vercel:
+1. Click **Add New** → **Project**
+2. Find your repository and click **Import**
 
-1. Go to [Vercel](https://vercel.com) and sign in
-2. Click **Add New** → **Project**
-3. Import your GitHub repository
-4. Configure environment variables (copy from `.env.local`):
-   - `GOOGLE_SHEETS_ID`
-   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-   - `GOOGLE_PRIVATE_KEY`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_API_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `TABLE_PREFIX`
-5. Click **Deploy**
+**Option B: If you don't have GitHub**
+
+1. On Vercel, click **Add New** → **Project**
+2. Choose **Import Third-Party Git Repository**
+3. Or use **Vercel CLI** (Claude can help install this)
+
+### 8.3 Add Your Environment Variables
+
+Before deploying, Vercel needs your credentials:
+
+1. On the project setup page, expand **Environment Variables**
+2. Add each of these (copy the values from your `.env.local` file):
+
+| Name | Where to find it |
+|------|------------------|
+| `GOOGLE_SHEETS_ID` | The long string in your Google Sheet URL |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | From the JSON key file |
+| `GOOGLE_PRIVATE_KEY` | From the JSON key file (include the whole thing with `-----BEGIN` and `-----END`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | From project owner |
+| `NEXT_PUBLIC_SUPABASE_API_KEY` | From project owner |
+| `SUPABASE_SERVICE_ROLE_KEY` | From project owner |
+| `TABLE_PREFIX` | Your sector prefix (e.g., `defi_`) |
+
+3. Click **Deploy**
+4. Wait 1-2 minutes for it to build
+5. 🎉 Your map is live! Vercel gives you a URL like `your-project.vercel.app`
 
 ### 8.3 Set Up Auto-Revalidation (Optional)
 
@@ -484,24 +555,66 @@ Market caps can be updated in the Google Sheet. Run sync to push changes.
 ## Troubleshooting
 
 ### Logos Not Showing
-1. Check if domain is in `next.config.js` remotePatterns
+1. Check if domain is in `next.config.js` remotePatterns (use `hostname: '**'` for all)
 2. Verify logo URLs are direct image links (not webpage URLs)
 3. Check browser console for image errors
+4. Some X/Twitter profile URLs return 404 - verify the URL works in a browser
 
 ### Categories Missing
 1. Verify category labels match exactly between Sheet and Supabase
 2. Check `CATEGORY_LAYERS` includes the category
 3. Run sync again
 
+### Companies Missing from Map
+1. Check company count: Sheet vs Supabase vs Map
+   ```bash
+   curl http://localhost:3000/api/map-data
+   ```
+2. Run force sync to re-sync all companies:
+   ```bash
+   curl -X POST "http://localhost:3000/api/sync?force=true"
+   ```
+3. Verify company row in Sheet has status "Done" or "Synced"
+
 ### Sync Failing
 1. Check Google service account has Editor access to sheet
 2. Verify Supabase service role key is correct
 3. Check server logs for detailed errors
 
+### company_status Column Error
+If sync fails with "column company_status does not exist":
+
+1. The column may be optional in your Supabase schema
+2. Update `ProtocolMetadata` interface to make it optional:
+   ```typescript
+   company_status?: string | null  // Optional - column may not exist
+   ```
+3. Remove `company_status` from sync payload if column doesn't exist:
+   ```typescript
+   const metadataPayload = {
+     protocol: slug,
+     name: row.companyName,
+     // ... other fields
+     // company_status: 'active',  // Remove if column doesn't exist
+   }
+   ```
+
+### Deleted Companies Reappearing
+If companies you deleted keep coming back:
+1. They're still in Google Sheet with "Synced" status
+2. Force sync re-adds all "Synced" rows
+3. Either delete the Sheet row OR change status to "Removed"
+
 ### Layout Issues
 1. Clear browser cache
 2. Check for console errors
 3. Verify responsive breakpoints
+
+### Production Build Errors (Lint)
+Common lint errors that block Vercel deployment:
+- Unused imports: Remove with `import { Used } from '...'`
+- Unused variables: Prefix with `_` or remove: `[, used] = array`
+- Type errors: Make optional fields use `?` in interface definitions
 
 ---
 
@@ -510,23 +623,33 @@ Market caps can be updated in the Google Sheet. Run sync to push changes.
 ```
 ├── app/
 │   ├── api/
-│   │   ├── sync/route.ts              # Sync companies from Sheet to Supabase
+│   │   ├── sync/route.ts              # Sync Sheet→Supabase (?force=true for full resync)
 │   │   ├── sync-logos/route.ts        # Sync logos from Sheet
 │   │   ├── rename-company/route.ts    # Rename a company in Supabase
 │   │   ├── delete-from-sheet/route.ts # Delete rows from all Sheet tabs
-│   │   ├── cleanup/route.ts           # Bulk remove companies
+│   │   ├── delete-company/route.ts    # Delete companies from Supabase
+│   │   ├── add-category/route.ts      # Add company to additional category
+│   │   ├── add-to-sheet/route.ts      # Add new row to Google Sheet
+│   │   ├── cleanup/route.ts           # Bulk remove companies + M&A status updates
 │   │   ├── check-company/route.ts     # Debug: check company in Supabase
 │   │   ├── check-logos/route.ts       # Debug: check logo sync status
 │   │   └── map-data/route.ts          # Get map statistics
-│   ├── map/page.tsx                   # Market map page
+│   ├── map/
+│   │   ├── page.tsx                   # Main map (32px logos, 52px cells, 2 rows/category)
+│   │   └── [layer]/page.tsx           # Layer detail (52px logos, 76px cells, all companies)
 │   └── treemap/page.tsx               # Treemap page (if enabled)
 ├── components/
-│   └── MessariStyleMap.tsx            # Main map component with tooltips
+│   ├── MessariStyleMap.tsx            # Main map component (px-6 padding)
+│   ├── LayerDetailView.tsx            # Layer drill-down (px-12 padding)
+│   └── ArtemisLogo.tsx                # Reusable logo component (optional)
 ├── database/
-│   └── api.ts                         # Supabase data fetching
+│   └── api.ts                         # Supabase data (includes upsert functions)
 ├── lib/
-│   ├── google-sheets.ts               # Google Sheets integration
+│   ├── google-sheets.ts               # Google Sheets (includes appendCompanyRow)
 │   └── supabase.ts                    # Supabase client
+├── public/
+│   ├── artemis-logo.svg               # Brand logo (40px header, 24px footer)
+│   └── artemis-logo.png               # Logo PNG fallback
 ├── .env.local                         # Environment variables (git-ignored)
 └── next.config.mjs                    # Next.js configuration
 ```
@@ -542,6 +665,9 @@ npm run dev
 # Sync companies from Sheet to Supabase
 curl -X POST http://localhost:3000/api/sync
 
+# Force sync ALL companies (re-syncs even "Synced" status rows)
+curl -X POST "http://localhost:3000/api/sync?force=true"
+
 # Sync logos (run after adding logos to Sheet)
 curl -X POST http://localhost:3000/api/sync-logos
 
@@ -549,6 +675,31 @@ curl -X POST http://localhost:3000/api/sync-logos
 curl -X POST http://localhost:3000/api/rename-company \
   -H "Content-Type: application/json" \
   -d '{"oldName": "Old Name", "newName": "New Name"}'
+
+# Delete companies from Supabase
+curl -X POST http://localhost:3000/api/delete-company \
+  -H "Content-Type: application/json" \
+  -d '{"companies": ["Company Name 1", "Company Name 2"]}'
+
+# Add company to additional category (multi-category support)
+curl -X POST http://localhost:3000/api/add-category \
+  -H "Content-Type: application/json" \
+  -d '{"company": "OpenAI", "category": "Enterprise"}'
+
+# Add new company directly to Google Sheet
+curl -X POST http://localhost:3000/api/add-to-sheet \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companyName": "Company Name",
+    "website": "https://company.com",
+    "category": "Category Name",
+    "description": "Brief description",
+    "logoUrl": "https://pbs.twimg.com/...",
+    "twitter": "https://x.com/handle",
+    "isPublic": true,
+    "ticker": "TICK",
+    "marketCap": "$50B"
+  }'
 
 # Check a company's data in Supabase
 curl http://localhost:3000/api/check-company?name=companyname
@@ -583,35 +734,367 @@ The map tooltip displays:
 
 ---
 
+## Visual Design Specifications
+
+### Brand Colors
+
+```typescript
+const ARTEMIS_PURPLE = '#7C3AED'  // Primary brand color for borders, accents
+```
+
+### Main Map View (MessariStyleMap.tsx)
+
+**Company Cell Dimensions:**
+```typescript
+const LOGO_SIZE = 32           // Company logo size in pixels
+const CELL_WIDTH = 52          // Fixed width per company cell
+const CELL_HEIGHT = 54         // Fixed height: logo (32) + gap (2) + 2-line text (~20)
+const CELL_GAP = 4             // gap-1 = 4px horizontal between cells
+const ROW_GAP = 4              // gap-1 between rows
+```
+
+**Category & Section Spacing:**
+```typescript
+const CATEGORY_PADDING = 16    // px-2 = 8px * 2 sides
+const DIVIDER_MARGIN = 4       // Equal margin from top/bottom for category dividers
+const SECTION_SPACING = 4      // Space between header/layers/footer
+```
+
+**Typography:**
+- Company name font size: `7px` (very compact for dense display)
+- Company name height: `18px` (2 lines with `line-clamp-2`)
+- Company name leading: `leading-tight`
+- Category header: `text-xs font-semibold` (12px)
+- Layer title: `text-base font-bold` (16px) with vertical orientation
+
+**Logo Sizes by Location:**
+| Location | Size | Tailwind Class |
+|----------|------|----------------|
+| Company cell | 32px | Custom style |
+| Tooltip | 48px | Custom style |
+| Header | 40px | `h-10 w-10` |
+| Footer | 24px | `h-6 w-6` |
+
+**Page Padding:**
+- Main map: `px-6` (24px each side)
+
+### Layer Detail View (LayerDetailView.tsx)
+
+The detail view uses **larger dimensions** for better readability when showing all companies.
+
+**Company Cell Dimensions:**
+```typescript
+const LOGO_SIZE = 52           // Larger logos than main map
+const CELL_WIDTH = 76          // Wider cells for more name space
+const CELL_GAP = 8             // More horizontal breathing room
+const ROW_GAP = 8              // More vertical breathing room
+```
+
+**Typography:**
+```typescript
+const FONT_SIZE = 10           // Larger than main map's 7px
+const LINE_HEIGHT = 1.3        // Comfortable line height
+const TEXT_LINES = 2           // Max lines for company name
+const TEXT_HEIGHT = Math.ceil(FONT_SIZE * LINE_HEIGHT * TEXT_LINES) + 4  // Extra buffer for descenders
+const LOGO_TEXT_GAP = 4        // Gap between logo and text
+```
+
+**Cell Height Calculation:**
+```typescript
+const CELL_HEIGHT = LOGO_SIZE + LOGO_TEXT_GAP + TEXT_HEIGHT
+// = 52 + 4 + 30 = 86px
+```
+
+**Page Padding:**
+- Detail view: `px-12` (48px each side = 96px total)
+- Container width calculation must account for padding:
+  ```typescript
+  containerWidth={containerWidth - 96}  // Account for px-12 padding
+  ```
+
+### Responsive Row Distribution
+
+The detail view calculates **optimal row distribution** to avoid orphan single items:
+
+```typescript
+function calculateRowDistribution(totalItems: number, maxPerRow: number): number[] {
+  if (totalItems <= maxPerRow) {
+    return [totalItems]
+  }
+
+  const numRows = Math.ceil(totalItems / maxPerRow)
+  const basePerRow = Math.floor(totalItems / numRows)
+  const remainder = totalItems % numRows
+
+  // Distribute items as evenly as possible across rows
+  const rows: number[] = []
+  for (let i = 0; i < numRows; i++) {
+    // Put extra items in earlier rows
+    rows.push(basePerRow + (i < remainder ? 1 : 0))
+  }
+
+  return rows
+}
+```
+
+### Gap Calculation for Full-Width Rows
+
+Both views calculate dynamic gaps to make rows span the full width:
+
+```typescript
+function calculateGapForRow(itemCount: number, targetWidth: number): number {
+  if (itemCount <= 1) return CELL_GAP
+  const totalCellWidth = itemCount * CELL_WIDTH
+  const availableGapSpace = targetWidth - totalCellWidth
+  const gap = availableGapSpace / (itemCount - 1)
+  return Math.max(CELL_GAP, gap)  // Never less than minimum gap
+}
+```
+
+### Status Badges
+
+```typescript
+const getStatusBadge = () => {
+  if (company.companyStatus === 'acquired') {
+    return { text: 'Acquired', color: 'bg-orange-100 text-orange-700' }
+  }
+  if (company.companyStatus === 'merged') {
+    return { text: 'Merged', color: 'bg-purple-100 text-purple-700' }
+  }
+  if (company.isPublic) {
+    return { text: 'Public', color: 'bg-green-100 text-green-700' }
+  }
+  return { text: 'Private', color: 'bg-gray-100 text-gray-600' }
+}
+```
+
+Badge styling: `text-[10px] px-1.5 py-0.5 rounded font-medium`
+
+---
+
+## Layer Drill-Down Pages
+
+The map supports clicking on layers to see all companies in that layer.
+
+### Route Structure
+
+- Main map: `/map`
+- Layer detail: `/map/[layer]` (e.g., `/map/application`, `/map/infrastructure`)
+
+### Layer Slugs
+
+```typescript
+const LAYER_SLUGS: Record<string, string> = {
+  'application': 'APPLICATION',
+  'model': 'MODEL',
+  'data': 'DATA',
+  'infrastructure': 'INFRA',
+  'security': 'SECURITY',
+}
+```
+
+### Implementation
+
+1. **Main map** shows 2 rows per category (top companies by market cap)
+2. **Layer detail** shows ALL companies in that layer
+3. Click layer title or layer border to navigate to detail view
+4. "Back to Map" link returns to overview
+
+### Adding a New Layer
+
+1. Add to `LAYER_SLUGS` in `app/map/[layer]/page.tsx`
+2. Add to `LAYER_DISPLAY_NAMES` in same file
+3. Add to `LAYER_CONFIG` in `app/map/page.tsx`
+4. Map categories to layer in `CATEGORY_LAYERS`
+
+---
+
+## Multi-Category Support
+
+Companies can appear in multiple categories. For example, OpenAI appears in both "Foundation Models" and "Enterprise".
+
+### Adding a Company to Another Category
+
+```bash
+curl -X POST http://localhost:3000/api/add-category \
+  -H "Content-Type: application/json" \
+  -d '{"company": "OpenAI", "category": "Enterprise"}'
+```
+
+This creates a new entry in `protocols_categories` linking the existing company to an additional category.
+
+**Note:** The company must already exist in `protocols_metadata`. This endpoint only adds category mappings.
+
+---
+
+## Force Sync Workflow
+
+When companies are missing from the map or data is out of sync, use force sync.
+
+### When to Use Force Sync
+
+- Companies added to sheet but not appearing in map
+- Company data updated in sheet but not reflected in Supabase
+- After bulk sheet updates
+- After schema changes
+
+### How It Works
+
+Normal sync only processes rows with status "Done". Force sync:
+1. Processes all rows with status "Done" OR "Synced"
+2. Uses **upsert** operations (insert or update) instead of insert-only
+3. Updates existing records if they changed
+
+### Commands
+
+```bash
+# Preview what will be synced
+curl http://localhost:3000/api/sync
+
+# Execute normal sync (only "Done" status)
+curl -X POST http://localhost:3000/api/sync
+
+# Force sync all companies (includes "Synced" status)
+curl -X POST "http://localhost:3000/api/sync?force=true"
+```
+
+---
+
+## Deleting Companies
+
+### Delete from Supabase Only
+
+```bash
+curl -X POST http://localhost:3000/api/delete-company \
+  -H "Content-Type: application/json" \
+  -d '{"companies": ["Company Name 1", "Company Name 2"]}'
+```
+
+This deletes from both `protocols_categories` and `protocols_metadata`.
+
+**Important:** If the company still exists in Google Sheet with "Synced" status, it will be re-added on the next force sync. Either:
+- Delete the row from the sheet
+- Change the sheet status to "Removed"
+
+### Delete from Everything
+
+1. Delete from Supabase via `/api/delete-company`
+2. Delete/mark row in sheet via `/api/delete-from-sheet`
+
+---
+
+## Adding Companies via API
+
+Add a company directly to Google Sheet without manual entry:
+
+```bash
+curl -X POST http://localhost:3000/api/add-to-sheet \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companyName": "New Company",
+    "website": "https://newcompany.com",
+    "category": "Enterprise",
+    "description": "Enterprise AI platform for...",
+    "logoUrl": "https://pbs.twimg.com/profile_images/.../image_400x400.jpg",
+    "twitter": "https://x.com/newcompany",
+    "isPublic": false,
+    "ticker": null,
+    "marketCap": "$2B",
+    "projectPage": ""
+  }'
+```
+
+Then run sync to push to Supabase:
+```bash
+curl -X POST http://localhost:3000/api/sync
+```
+
+---
+
+## Branding (Artemis Logo Included!)
+
+The Artemis logo is already included in the repo. You don't need to do anything - it's ready to use.
+
+### Logo Files (Already in Repo)
+
+These files are in `public/`:
+- `public/artemis-logo.svg` - Vector logo (used in header/footer)
+- `public/artemis-logo.png` - PNG fallback
+- `app/favicon.ico` - Browser tab icon
+
+### Where the Logo Appears
+
+The logo automatically appears in:
+- **Header** - 40px logo next to the title
+- **Footer** - 24px logo with "Artemis" text
+
+### If You Want to Use a Different Logo
+
+Replace these files with your own (keep the same filenames):
+1. `public/artemis-logo.svg` - Your logo as SVG (recommended)
+2. `public/artemis-logo.png` - Your logo as PNG
+3. `app/favicon.ico` - Your favicon
+
+### Logo Sizes in the Code
+
+```tsx
+{/* Header - 40px */}
+<img
+  src="/artemis-logo.svg"
+  alt="Artemis"
+  className="h-10 w-10"
+/>
+
+{/* Footer - 24px */}
+<img
+  src="/artemis-logo.svg"
+  alt="Artemis"
+  className="h-6 w-6"
+/>
+```
+
+---
+
 # PART 2: Research Workflow
 
 This section covers the research process for adding new companies and verifying data.
 
 ---
 
-## Adding a New Company (Complete Workflow)
+## Adding a New Company
 
-When adding a new company, follow this complete research workflow:
+**CLAUDE HELPS THE USER ADD COMPANIES:**
 
-### Step 1: Gather Basic Information
+> "Let's add some companies to your map! Just tell me the company name and I'll help you gather the rest."
 
-1. **Company Name**: Official company name
-2. **Website**: Official website URL
-3. **Category**: Which market map category does it belong to?
-4. **Public/Private**: Is it publicly traded?
+### What We Need for Each Company
 
-### Step 2: Find X (Twitter) Profile
+1. **Company Name** - The official name
+2. **Website** - Their main website
+3. **Category** - Which category on your map
+4. **Logo** - A square image (we'll find this together)
+5. **Description** - 1-2 sentences about what they do
+6. **Public or Private** - Is it publicly traded?
+7. **Market Cap or Valuation** - How much is the company worth?
 
-Use the x402 API to find and verify the company's X profile:
+### Finding a Logo
 
-```javascript
-// Use mcp__x402__fetch tool
-mcp__x402__fetch({
-  url: "https://x402.twit.sh/users/by/username?username=<handle>"
-})
-```
+**Easiest method - X/Twitter profile picture:**
 
-**Common handle patterns to try:**
+1. Go to the company's X/Twitter page
+2. Click on their profile picture to make it bigger
+3. Right-click the big image → **"Copy image address"**
+4. That URL goes in the Logo column
+
+The URL should look like: `https://pbs.twimg.com/profile_images/...`
+
+**If they don't have X/Twitter:**
+- Check their website for a logo
+- Try: `https://logo.clearbit.com/companywebsite.com`
+
+### Finding X/Twitter Profiles
+
+**Common patterns:**
 - `@CompanyName` (e.g., @AMD, @Intel)
 - `@CompanyNameHQ` (e.g., @NotionHQ, @AbridgeHQ)
 - `@CompanyName_AI` or `@CompanyNameAI` (e.g., @deepseek_ai, @perplexity_ai)
@@ -893,9 +1376,18 @@ const spreadsheetId = env.GOOGLE_SHEETS_ID;
 
 ---
 
-## x402 API Reference
+## x402 API Reference (Optional)
 
-The x402 MCP provides authenticated Twitter/X data.
+The x402 MCP provides automated Twitter/X profile lookups. **This is optional** - you can find logos manually if you don't have x402 set up.
+
+### Check If You Have x402
+
+Try running in Claude Code:
+```javascript
+mcp__x402__get_wallet_info()
+```
+
+If this fails, you don't have x402 configured. Skip this section and find logos manually.
 
 ### Check Wallet Balance
 
@@ -926,6 +1418,14 @@ If balance is low, deposit at:
 ```
 https://x402scan.com/mcp/deposit/{wallet_address}
 ```
+
+### Manual Alternative
+
+If you don't have x402, get logos manually:
+1. Go to company's X profile
+2. Click profile picture to expand
+3. Right-click → "Copy image address"
+4. Replace `_normal` with `_400x400` in URL
 
 ---
 
