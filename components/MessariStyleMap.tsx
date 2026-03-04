@@ -88,16 +88,19 @@ function formatValue(value: number): string {
 
 // Tooltip logo size
 const TOOLTIP_LOGO_SIZE = 48
+const TOOLTIP_HEIGHT_ESTIMATE = 200 // Approximate max height of tooltip
 
 // Tooltip component
-function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number }) {
+function Tooltip({ data, windowWidth, windowHeight }: { data: TooltipData; windowWidth: number; windowHeight: number }) {
   const { company, x, y } = data
 
-  // Position tooltip to left or right of cursor based on screen position
+  // Position tooltip based on screen position (both horizontal and vertical)
   const showOnLeft = x > windowWidth / 2
+  const showAbove = y > windowHeight - TOOLTIP_HEIGHT_ESTIMATE
+
   const tooltipStyle: React.CSSProperties = {
     position: 'fixed',
-    top: y + 10,
+    ...(showAbove ? { bottom: windowHeight - y + 10 } : { top: y + 10 }),
     ...(showOnLeft ? { right: windowWidth - x + 10 } : { left: x + 10 }),
     zIndex: 50,
     maxWidth: 400,
@@ -118,6 +121,16 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
   }
 
   const statusBadge = getStatusBadge()
+
+  // Format Twitter URL for display
+  const getTwitterHandle = (twitter: string) => {
+    return twitter.replace(/^https?:\/\/(x\.com|twitter\.com)\//, '').replace(/\/$/, '')
+  }
+
+  const getTwitterUrl = (twitter: string) => {
+    const handle = getTwitterHandle(twitter)
+    return `https://x.com/${handle}`
+  }
 
   return (
     <div
@@ -172,12 +185,12 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
       )}
       {/* Links */}
       {(company.website || company.twitter) && (
-        <div className="flex gap-3 mt-2 text-xs">
+        <div className="flex flex-col gap-1 mt-2 text-xs">
           {company.website && (
-            <span className="text-blue-500">🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+            <div className="text-blue-500">🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</div>
           )}
           {company.twitter && (
-            <span className="text-blue-400">𝕏 @{company.twitter.replace(/^https?:\/\/(x\.com|twitter\.com)\//, '').replace(/\/$/, '')}</span>
+            <div className="text-blue-400">𝕏 {getTwitterUrl(company.twitter)}</div>
           )}
         </div>
       )}
@@ -373,9 +386,13 @@ function LayerSection({
 export function MessariStyleMap({ config }: MessariStyleMapProps) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800)
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth)
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+      setWindowHeight(window.innerHeight)
+    }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -383,7 +400,7 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
   return (
     <div className="bg-white min-h-screen">
       {/* Tooltip */}
-      {tooltip && <Tooltip data={tooltip} windowWidth={windowWidth} />}
+      {tooltip && <Tooltip data={tooltip} windowWidth={windowWidth} windowHeight={windowHeight} />}
 
       {/* Header */}
       <div className="px-6 py-4 flex items-center gap-4">
