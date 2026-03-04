@@ -86,6 +86,9 @@ function formatValue(value: number): string {
   return `$${(value * 1000).toFixed(0)}M`
 }
 
+// Tooltip logo size
+const TOOLTIP_LOGO_SIZE = 48
+
 // Tooltip component
 function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number }) {
   const { company, x, y } = data
@@ -97,7 +100,7 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
     top: y + 10,
     ...(showOnLeft ? { right: windowWidth - x + 10 } : { left: x + 10 }),
     zIndex: 50,
-    maxWidth: 360,
+    maxWidth: 400,
   }
 
   // Determine status badge
@@ -121,35 +124,60 @@ function Tooltip({ data, windowWidth }: { data: TooltipData; windowWidth: number
       className="bg-white border border-gray-200 rounded-lg shadow-xl p-3 pointer-events-none"
       style={tooltipStyle}
     >
-      <div className="flex items-center gap-2">
-        <div className="font-semibold text-gray-900 text-sm">{company.name}</div>
-        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusBadge.color}`}>
-          {statusBadge.text}
-        </span>
-      </div>
-      {company.ticker && (
-        <div className="text-xs text-blue-600 mt-0.5">${company.ticker}</div>
-      )}
-      {company.marketCap && (
-        <div className="text-xs text-green-600 mt-1 font-medium">
-          {formatValue(company.marketCap)}
-          <span className="text-gray-400 font-normal ml-1">
-            ({company.isPublic ? 'Market Cap' : 'Valuation'})
-          </span>
+      {/* Header with logo in top-right */}
+      <div className="flex justify-between items-start gap-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <div className="font-semibold text-gray-900 text-sm">{company.name}</div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusBadge.color}`}>
+              {statusBadge.text}
+            </span>
+          </div>
+          {company.ticker && (
+            <div className="text-xs text-blue-600 mt-0.5">${company.ticker}</div>
+          )}
+          {company.marketCap && (
+            <div className="text-xs text-green-600 mt-1 font-medium">
+              {formatValue(company.marketCap)}
+              <span className="text-gray-400 font-normal ml-1">
+                ({company.isPublic ? 'Market Cap' : 'Valuation'})
+              </span>
+            </div>
+          )}
         </div>
-      )}
+        {/* Logo in top-right corner */}
+        {company.logo ? (
+          <Image
+            src={company.logo}
+            alt={company.name}
+            width={TOOLTIP_LOGO_SIZE}
+            height={TOOLTIP_LOGO_SIZE}
+            className="rounded-lg object-cover border border-gray-100 flex-shrink-0"
+            style={{ width: TOOLTIP_LOGO_SIZE, height: TOOLTIP_LOGO_SIZE }}
+          />
+        ) : (
+          <div
+            className="rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 font-medium flex-shrink-0"
+            style={{ width: TOOLTIP_LOGO_SIZE, height: TOOLTIP_LOGO_SIZE, fontSize: TOOLTIP_LOGO_SIZE * 0.35 }}
+          >
+            {company.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </div>
+        )}
+      </div>
+      {/* Description */}
       {company.description && (
         <div className="text-xs text-gray-600 mt-2">
           {company.description}
         </div>
       )}
+      {/* Links */}
       {(company.website || company.twitter) && (
         <div className="flex gap-3 mt-2 text-xs">
           {company.website && (
             <span className="text-blue-500">🌐 {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
           )}
           {company.twitter && (
-            <span className="text-blue-400">𝕏 {company.twitter.includes('/') ? company.twitter.split('/').pop() : company.twitter}</span>
+            <span className="text-blue-400">𝕏 @{company.twitter.replace(/^https?:\/\/(x\.com|twitter\.com)\//, '').replace(/\/$/, '')}</span>
           )}
         </div>
       )}
