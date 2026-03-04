@@ -761,18 +761,23 @@ const SECTION_SPACING = 4      // Space between header/layers/footer
 ```
 
 **Typography:**
+- **Title**: `text-4xl font-bold` (36px) - large and prominent, no subtitle
 - Company name font size: `7px` (very compact for dense display)
 - Company name height: `18px` (2 lines with `line-clamp-2`)
 - Company name leading: `leading-tight`
 - Category header: `text-xs font-semibold` (12px)
 - Layer title: `text-base font-bold` (16px) with vertical orientation
 
+**Borders & Dividers:**
+- Layer border: `2px solid` with `ARTEMIS_PURPLE` color
+- Category dividers: `2px solid` with `ARTEMIS_PURPLE` at 90% opacity (`#7C3AED90`)
+
 **Logo Sizes by Location:**
 | Location | Size | Tailwind Class |
 |----------|------|----------------|
 | Company cell | 32px | Custom style |
 | Tooltip | 48px | Custom style |
-| Header | 40px | `h-10 w-10` |
+| Header | 48px | `h-12 w-12` |
 | Footer | 24px | `h-6 w-6` |
 
 **Page Padding:**
