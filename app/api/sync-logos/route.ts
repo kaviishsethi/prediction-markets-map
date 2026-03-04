@@ -49,10 +49,15 @@ export async function POST() {
           continue
         }
 
-        // Update the logo
+        // Update the logo and twitter
+        const updateData: { logo: string; twitter?: string } = { logo: logo.logoUrl }
+        if (logo.twitter) {
+          updateData.twitter = logo.twitter
+        }
+
         const { error: updateError } = await supabaseAdmin
           .from(TABLES.protocols_metadata)
-          .update({ logo: logo.logoUrl })
+          .update(updateData)
           .eq('protocol', existing.protocol)
 
         if (updateError) {
