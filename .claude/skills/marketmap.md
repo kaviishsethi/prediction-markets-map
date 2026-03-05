@@ -195,7 +195,7 @@ Then clone the template and set up the project:
 
 ```bash
 # Clone the template
-git clone https://github.com/anthropics/ai-landscape-map.git <sector>-landscape-map
+git clone https://github.com/Artemis-xyz/ai-landscape-map.git <sector>-landscape-map
 
 # Navigate into the project
 cd <sector>-landscape-map
