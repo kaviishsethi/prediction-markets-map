@@ -13,6 +13,176 @@ Claude will handle everything - cloning, setup, and guiding you through each ste
 
 ---
 
+## Step 0: What Data Do You Have? (CLAUDE STARTS HERE)
+
+**CLAUDE MUST ASK THIS FIRST:**
+
+> "Let's build your market map! First, share the company data you have. I can work with **any format** - just paste or describe what you've got."
+
+### Accepted Data Formats
+
+| Format | Example | Claude Will... |
+|--------|---------|----------------|
+| **Plain list** | "OpenAI, Anthropic, Google DeepMind..." | Parse names, research details |
+| **Bullet points** | "• OpenAI - $157B\n• Anthropic - $60B" | Extract names + valuations |
+| **CSV/spreadsheet** | Copy-paste from Excel/Sheets | Parse columns automatically |
+| **JSON** | `[{"name": "OpenAI", "category": "Foundation Models"}]` | Import directly |
+| **Screenshot** | Image of a list or table | OCR and extract data |
+| **URL** | Link to existing list/article | Fetch and extract companies |
+| **Existing Sheet** | Google Sheets URL | Read directly via API |
+| **Messy notes** | "AI companies: openai is worth like 150B, anthropic maybe 60B?" | Clean up and structure |
+| **Just company names** | "I want to map: OpenAI, Anthropic, Mistral" | Research everything else |
+
+### What Claude Asks Next
+
+Based on what the user provides, ask clarifying questions:
+
+**If user provides just names:**
+> "Got it! I'll research each company. What categories/layers do you want? For example:
+> - Foundation Models, Infrastructure, Applications
+> - Or should I suggest categories based on what these companies do?"
+
+**If user provides partial data:**
+> "I see you have [names/valuations/categories]. I'll fill in the missing pieces:
+> - [ ] Company descriptions
+> - [ ] Current valuations/market caps
+> - [ ] Logo URLs (via X/Twitter profiles)
+> - [ ] Website URLs
+> Which should I prioritize?"
+
+**If user provides a URL or sheet:**
+> "I'll pull the data from there. What's the structure - are there columns for category, valuation, etc.?"
+
+### Data Transformation Flow
+
+```
+User's messy data
+       ↓
+   Claude parses & validates
+       ↓
+   Research missing info (valuations, logos, descriptions)
+       ↓
+   Verify X/Twitter accounts (via x402)
+       ↓
+   Format into Google Sheet structure
+       ↓
+   Sync to Supabase
+       ↓
+   🎉 Market Map ready!
+```
+
+---
+
+## Step 0.5: Verify X/Twitter Accounts (CRITICAL)
+
+**CLAUDE MUST VERIFY each company's X account before using it for logos.**
+
+### The x402 Twitter Lookup Endpoint
+
+Use this endpoint to verify X/Twitter profiles:
+
+```
+https://x402.twit.sh/users/by/username?username=CompanyHandle
+```
+
+**Example:**
+```javascript
+mcp__x402__fetch({
+  url: "https://x402.twit.sh/users/by/username?username=OpenAI"
+})
+```
+
+**Cost:** ~$0.01 per lookup
+
+### Verification Checklist (REQUIRED)
+
+For each company, verify the X account is correct by checking:
+
+| Check | What to Look For | Red Flag |
+|-------|------------------|----------|
+| **Name match** | Display name matches company | "OpenAI Fan Club" ≠ OpenAI |
+| **Verified status** | Blue checkmark for major companies | Unverified major company |
+| **Follower count** | Reasonable for company size | 500 followers for $100B company |
+| **Description** | Matches company's business | Unrelated description |
+| **Website link** | Points to official domain | Links to unrelated site |
+| **Account age** | Created before/around company founding | Created last month |
+
+### Common X Handle Patterns
+
+Try these patterns when searching:
+
+| Pattern | Example |
+|---------|---------|
+| `@CompanyName` | @OpenAI, @Anthropic |
+| `@CompanyNameHQ` | @NotionHQ, @StripeHQ |
+| `@CompanyName_AI` | @Perplexity_AI, @Cohere_AI |
+| `@CompanyNameAI` | @MistralAI |
+| `@CompanyNameInc` | @GroqInc |
+| `@CompanyName_io` | @n8n_io |
+| `@Get{CompanyName}` | @getdbt |
+| `@{CompanyName}Labs` | @AnthropicLabs (redirect) |
+
+### Verification Workflow
+
+**CLAUDE DOES THIS FOR EACH COMPANY:**
+
+1. **Try the obvious handle first:**
+   ```javascript
+   mcp__x402__fetch({
+     url: "https://x402.twit.sh/users/by/username?username=OpenAI"
+   })
+   ```
+
+2. **Check the response:**
+   ```json
+   {
+     "name": "OpenAI",
+     "username": "OpenAI",
+     "verified": true,
+     "description": "Creating safe AGI that benefits all of humanity",
+     "profile_image_url": "https://pbs.twimg.com/profile_images/.../image_normal.jpg",
+     "public_metrics": { "followers_count": 3200000 }
+   }
+   ```
+
+3. **Verify it's the real account:**
+   - ✅ Name: "OpenAI" matches
+   - ✅ Verified: true
+   - ✅ Followers: 3.2M (reasonable for major AI company)
+   - ✅ Description: Mentions AGI/AI
+   - ✅ This is the official account
+
+4. **Get high-res logo:**
+   - Take `profile_image_url` from response
+   - Replace `_normal` with `_400x400` for high resolution:
+     ```
+     https://pbs.twimg.com/profile_images/1234567890/image_400x400.jpg
+     ```
+
+### When Verification Fails
+
+**If account looks wrong:**
+> "⚠️ The @{handle} account doesn't look official:
+> - Only 500 followers
+> - Not verified
+> - Description mentions 'fan account'
+>
+> Should I:
+> 1. Try alternative handles (@CompanyNameHQ, @CompanyName_AI)
+> 2. Skip X and use Clearbit logo instead
+> 3. Let you provide the correct handle?"
+
+**If account doesn't exist:**
+> "No X account found for @{handle}. Trying alternatives..."
+> [Try @CompanyNameHQ, @CompanyName_AI, etc.]
+
+**If still can't find:**
+> "Can't find an official X account for {Company}. I'll use:
+> - Clearbit: `https://logo.clearbit.com/{domain}`
+> - Or you can provide the correct X handle"
+
+---
+
 ## Step 1: Get Started
 
 **CLAUDE SHOULD DO THIS AUTOMATICALLY:**
@@ -1376,9 +1546,17 @@ const spreadsheetId = env.GOOGLE_SHEETS_ID;
 
 ---
 
-## x402 API Reference (Optional)
+## x402 API Reference (AgentCash-Enabled)
 
-The x402 MCP provides automated Twitter/X profile lookups. **This is optional** - you can find logos manually if you don't have x402 set up.
+The x402 MCP provides **automated Twitter/X profile lookups** with crypto micropayments. This is the recommended way to verify company X accounts and get high-quality logos.
+
+### The Key Endpoint
+
+```
+https://x402.twit.sh/users/by/username?username=CompanyHandle
+```
+
+This is the **AgentCash-identifiable x402 endpoint** for Twitter profile lookups. Each call costs ~$0.01 USDC.
 
 ### Check If You Have x402
 
@@ -1387,13 +1565,15 @@ Try running in Claude Code:
 mcp__x402__get_wallet_info()
 ```
 
-If this fails, you don't have x402 configured. Skip this section and find logos manually.
+If this fails, you don't have x402 configured. See "Manual Alternative" below.
 
 ### Check Wallet Balance
 
 ```javascript
 mcp__x402__get_wallet_info()
 ```
+
+Returns your wallet address and USDC balance on Base.
 
 ### Look Up X Profile
 
@@ -1403,14 +1583,56 @@ mcp__x402__fetch({
 })
 ```
 
-**Response includes:**
-- `username`, `name`, `description`
-- `verified`, `verified_type`
-- `profile_image_url` (use `_400x400` version)
-- `public_metrics.followers_count`
-- `location`
+**Example - Looking up OpenAI:**
+```javascript
+mcp__x402__fetch({
+  url: "https://x402.twit.sh/users/by/username?username=OpenAI"
+})
+```
 
-**Cost:** $0.01 per lookup
+**Response includes:**
+```json
+{
+  "id": "28785486",
+  "name": "OpenAI",
+  "username": "OpenAI",
+  "description": "Creating safe AGI that benefits all of humanity",
+  "verified": true,
+  "verified_type": "business",
+  "profile_image_url": "https://pbs.twimg.com/profile_images/.../image_normal.jpg",
+  "public_metrics": {
+    "followers_count": 3200000,
+    "following_count": 50,
+    "tweet_count": 1500
+  },
+  "location": "San Francisco",
+  "url": "https://openai.com"
+}
+```
+
+**Key fields for verification:**
+- `name` - Should match company name
+- `verified` - Should be `true` for major companies
+- `public_metrics.followers_count` - Should be reasonable for company size
+- `description` - Should describe the company's business
+- `profile_image_url` - Use for logo (change `_normal` to `_400x400`)
+
+**Cost:** ~$0.01 per lookup
+
+### Batch Lookups
+
+When adding multiple companies, batch the lookups efficiently:
+
+```javascript
+// Good: Look up multiple companies in sequence
+const companies = ['OpenAI', 'Anthropic', 'Mistral'];
+for (const handle of companies) {
+  const result = await mcp__x402__fetch({
+    url: `https://x402.twit.sh/users/by/username?username=${handle}`
+  });
+  // Verify and store result
+}
+```
 
 ### Top Up Wallet
 
@@ -1419,13 +1641,24 @@ If balance is low, deposit at:
 https://x402scan.com/mcp/deposit/{wallet_address}
 ```
 
-### Manual Alternative
+Or redeem an invite code:
+```javascript
+mcp__x402__redeem_invite({ code: "YOUR_CODE" })
+```
+
+### Manual Alternative (No x402)
 
 If you don't have x402, get logos manually:
-1. Go to company's X profile
-2. Click profile picture to expand
-3. Right-click → "Copy image address"
-4. Replace `_normal` with `_400x400` in URL
+1. Go to company's X profile (e.g., https://x.com/OpenAI)
+2. Click profile picture to expand it
+3. Right-click the expanded image → **"Copy image address"**
+4. Replace `_normal` with `_400x400` in URL for high resolution
+
+**Example URL transformation:**
+```
+Before: https://pbs.twimg.com/profile_images/123/image_normal.jpg
+After:  https://pbs.twimg.com/profile_images/123/image_400x400.jpg
+```
 
 ---
 
@@ -1443,6 +1676,136 @@ Before syncing, verify:
 - [ ] **Logo URLs** use `_400x400` resolution
 - [ ] **Public/Private** status is accurate
 - [ ] **M&A status** is noted for acquired/merged companies
+
+---
+
+## Adjusting Layout & Spacing
+
+**CLAUDE PROMPTS THE USER:**
+
+> "Want to adjust the logo sizes and spacing on your map? I can help you customize the layout."
+
+### Layout Presets
+
+**ASK USER:** How would you like the map to look?
+
+| Preset | Logo Size | Cell Width | Gap | Best For |
+|--------|-----------|------------|-----|----------|
+| **Compact** | 28px | 44px | 4px | Many companies (100+) |
+| **Standard** | 32px | 52px | 4px | Medium maps (50-100) |
+| **Spacious** | 40px | 64px | 8px | Fewer companies (<50) |
+| **Large** | 48px | 72px | 8px | Presentation/print |
+| **Custom** | ? | ? | ? | User specifies values |
+
+### Key Layout Constants
+
+These are in `components/MessariStyleMap.tsx` (main map) or your custom map component:
+
+```typescript
+// Company cell dimensions
+const LOGO_SIZE = 32           // Logo size in pixels (32, 40, 48, etc.)
+const CELL_WIDTH = 52          // Width of each company cell
+const CELL_HEIGHT = 54         // Height: logo + gap + text
+const CELL_GAP = 4             // Horizontal gap between logos
+const ROW_GAP = 4              // Vertical gap between rows
+
+// Category & section spacing
+const CATEGORY_PADDING = 16    // Padding inside category boxes
+const DIVIDER_MARGIN = 4       // Top/bottom margin in layers
+
+// Typography
+const FONT_SIZE = 7            // Company name font size (7-10px typical)
+```
+
+### Applying a Preset
+
+**CLAUDE DOES THIS:**
+
+When user selects a preset, update the constants in the map component:
+
+**Compact preset:**
+```typescript
+const LOGO_SIZE = 28
+const CELL_WIDTH = 44
+const CELL_HEIGHT = 46
+const CELL_GAP = 2
+const ROW_GAP = 2
+const FONT_SIZE = 6
+```
+
+**Standard preset:**
+```typescript
+const LOGO_SIZE = 32
+const CELL_WIDTH = 52
+const CELL_HEIGHT = 54
+const CELL_GAP = 4
+const ROW_GAP = 4
+const FONT_SIZE = 7
+```
+
+**Spacious preset:**
+```typescript
+const LOGO_SIZE = 40
+const CELL_WIDTH = 64
+const CELL_HEIGHT = 68
+const CELL_GAP = 8
+const ROW_GAP = 6
+const FONT_SIZE = 9
+```
+
+**Large preset:**
+```typescript
+const LOGO_SIZE = 48
+const CELL_WIDTH = 72
+const CELL_HEIGHT = 80
+const CELL_GAP = 8
+const ROW_GAP = 6
+const FONT_SIZE = 10
+```
+
+### Custom Spacing for Specific Categories
+
+Some categories may need different spacing (e.g., fewer companies should be more spread out):
+
+```typescript
+// Categories with custom spacing rules
+const TIGHT_SPACING_CATEGORIES = new Set(['Facilitators', 'Networks'])
+const MAX_PER_ROW: Record<string, number> = {
+  'Security': 2,
+  'Stablecoins': 3,
+}
+```
+
+**ASK USER:** Do any categories need special treatment?
+- Categories with few companies (spread out more)
+- Categories with many companies (pack tighter)
+- Custom max items per row
+
+### Centered vs Full-Width Rows
+
+**ASK USER:** How should companies be arranged in rows?
+
+1. **Full-width** (default) - Companies spread to fill the row width
+2. **Centered** - Companies grouped in center with fixed gaps
+
+For centered layout in specific categories:
+```typescript
+// In the row rendering:
+<div className={`flex ${isTightSpacing ? 'justify-center' : ''}`}
+     style={{ gap: `${rowGap}px` }}>
+```
+
+### Quick Adjustments
+
+If user just wants minor tweaks:
+
+**"Make logos bigger"** → Increase `LOGO_SIZE` by 8px, adjust `CELL_WIDTH` and `CELL_HEIGHT` proportionally
+
+**"More space between logos"** → Increase `CELL_GAP` and `ROW_GAP` by 2-4px
+
+**"Tighter/more compact"** → Decrease all spacing values by 20-30%
+
+**"Company names are cut off"** → Increase `CELL_WIDTH` by 10-20px or decrease `FONT_SIZE`
 
 ---
 
