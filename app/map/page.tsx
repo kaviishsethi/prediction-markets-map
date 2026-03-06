@@ -1,5 +1,34 @@
 import { getCategoriesWithProtocols } from '@/database/api'
 import { MessariStyleMap, type MarketMapConfig, type Layer, type Category } from '@/components/MessariStyleMap'
+import type { Metadata } from 'next'
+
+// Generate dynamic title with current month and year
+function getMapTitle(): string {
+  const now = new Date()
+  const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return `${monthYear} AI Landscape`
+}
+
+// Dynamic metadata for link previews
+export async function generateMetadata(): Promise<Metadata> {
+  const title = getMapTitle()
+  const description = 'Interactive market map of AI companies across Application, Model, Data, Infrastructure, and Security layers.'
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  }
+}
 
 // Layer order and display names
 const LAYER_CONFIG: Record<string, { displayName: string; order: number }> = {
@@ -138,7 +167,7 @@ function transformToConfig(
   }
 
   return {
-    title: 'AI Landscape Market Map',
+    title: getMapTitle(),
     layers,
     maxCompaniesPerCategory,
     dataAsOf: new Date().toLocaleDateString('en-US', {

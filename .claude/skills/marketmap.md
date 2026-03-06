@@ -926,12 +926,33 @@ const SECTION_SPACING = 4      // Space between header/layers/footer
 ```
 
 **Typography:**
-- **Title**: `text-4xl font-bold` (36px) - large and prominent, no subtitle
+- **Title**: `text-4xl font-bold` (36px) - dynamic format: "[Month] [Year] AI Landscape" (e.g., "March 2026 AI Landscape")
 - Company name font size: `7px` (very compact for dense display)
 - Company name height: `18px` (2 lines with `line-clamp-2`)
 - Company name leading: `leading-tight`
 - Category header: `text-xs font-semibold` (12px)
 - Layer title: `text-base font-bold` (16px) with vertical orientation
+
+**Dynamic Title & Metadata (app/map/page.tsx):**
+```typescript
+// Helper function for consistent title
+function getMapTitle(): string {
+  const now = new Date()
+  const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return `${monthYear} AI Landscape`
+}
+
+// Dynamic metadata for link previews (og:title, Twitter cards)
+export async function generateMetadata(): Promise<Metadata> {
+  const title = getMapTitle()
+  return {
+    title,
+    description: 'Interactive market map of AI companies...',
+    openGraph: { title, description, type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
+  }
+}
+```
 
 **Borders & Dividers:**
 - Layer border: `2px solid` with `ARTEMIS_PURPLE` color
