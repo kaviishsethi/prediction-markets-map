@@ -1173,16 +1173,30 @@ Badge styling: `text-[10px] px-1.5 py-0.5 rounded font-medium`
 
 ## Layer Drill-Down Pages
 
-The map supports clicking on layers to see all companies in that layer.
+The map supports clicking on layers to see all companies in that layer on a dedicated page.
 
 ### Route Structure
 
 - Main map: `/map`
 - Layer detail: `/map/[layer]` (e.g., `/map/application`, `/map/infrastructure`)
 
-### Layer Slugs
+### How It Works
+
+1. User clicks on a layer title or layer border in the main map
+2. Navigation triggers to `/map/{layer-slug}`
+3. Detail page shows ALL companies in that layer (not limited to 2 rows)
+4. "Back to Map" link returns to overview
+
+### Step 1: Create the Dynamic Route
+
+Create `app/map/[layer]/page.tsx`:
 
 ```typescript
+import { getCategoriesWithProtocols } from '@/database/api'
+import { LayerDetailView } from '@/components/LayerDetailView'
+import Link from 'next/link'
+
+// Map URL slugs to internal layer names
 const LAYER_SLUGS: Record<string, string> = {
   'application': 'APPLICATION',
   'model': 'MODEL',
@@ -1190,14 +1204,175 @@ const LAYER_SLUGS: Record<string, string> = {
   'infrastructure': 'INFRA',
   'security': 'SECURITY',
 }
+
+// Display names for each layer
+const LAYER_DISPLAY_NAMES: Record<string, string> = {
+  'APPLICATION': 'Application',
+  'MODEL': 'Model',
+  'DATA': 'Data',
+  'INFRA': 'Infrastructure',
+  'SECURITY': 'Security',
+}
+
+// Category to layer mapping (same as main map)
+const CATEGORY_LAYERS: Record<string, string> = {
+  'Consumer': 'APPLICATION',
+  'Enterprise': 'APPLICATION',
+  // ... add all your categories
+}
+
+export async function generateStaticParams() {
+  return Object.keys(LAYER_SLUGS).map(slug => ({ layer: slug }))
+}
+
+export default async function LayerPage({ params }: { params: { layer: string } }) {
+  const layerKey = LAYER_SLUGS[params.layer]
+  if (!layerKey) {
+    return <div>Layer not found</div>
+  }
+
+  const categoriesWithProtocols = await getCategoriesWithProtocols()
+
+  // Filter to only categories in this layer
+  const layerCategories = Object.entries(categoriesWithProtocols)
+    .filter(([_, cat]) => CATEGORY_LAYERS[cat.label] === layerKey)
+    .map(([_, cat]) => ({
+      name: cat.label,
+      companies: cat.protocols.map(p => ({
+        name: p.metadata.name,
+        logo: p.metadata.logo || undefined,
+        slug: p.protocol,
+        // ... other fields
+      }))
+    }))
+
+  return (
+    <div className="bg-white min-h-screen">
+      <div className="px-6 py-4">
+        <Link href="/map" className="text-purple-600 hover:underline">
+          ← Back to Map
+        </Link>
+      </div>
+      <LayerDetailView
+        layerName={LAYER_DISPLAY_NAMES[layerKey]}
+        categories={layerCategories}
+      />
+    </div>
+  )
+}
 ```
 
-### Implementation
+### Step 2: Create LayerDetailView Component
 
-1. **Main map** shows dynamic rows per category (up to MAX_ROWS=2, based on company count)
-2. **Layer detail** shows ALL companies in that layer
-3. Click layer title or layer border to navigate to detail view
-4. "Back to Map" link returns to overview
+Create `components/LayerDetailView.tsx`:
+
+```typescript
+'use client'
+
+import Image from 'next/image'
+
+// Larger dimensions for detail view
+const LOGO_SIZE = 52
+const CELL_WIDTH = 76
+const CELL_HEIGHT = 86
+const CELL_GAP = 8
+const ROW_GAP = 8
+
+interface Company {
+  name: string
+  logo?: string
+  slug?: string
+  // ... other fields
+}
+
+interface Category {
+  name: string
+  companies: Company[]
+}
+
+interface LayerDetailViewProps {
+  layerName: string
+  categories: Category[]
+}
+
+export function LayerDetailView({ layerName, categories }: LayerDetailViewProps) {
+  return (
+    <div className="px-12">
+      <h1 className="text-3xl font-bold mb-6">{layerName} Layer</h1>
+
+      {categories.map((category, idx) => (
+        <div key={idx} className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">
+            {category.name} ({category.companies.length})
+          </h2>
+
+          <div className="flex flex-wrap" style={{ gap: CELL_GAP }}>
+            {category.companies.map((company, compIdx) => (
+              <div
+                key={company.slug || compIdx}
+                className="flex flex-col items-center"
+                style={{ width: CELL_WIDTH }}
+              >
+                {company.logo ? (
+                  <Image
+                    src={company.logo}
+                    alt={company.name}
+                    width={LOGO_SIZE}
+                    height={LOGO_SIZE}
+                    className="rounded-full object-cover border border-gray-100"
+                  />
+                ) : (
+                  <div
+                    className="rounded-full bg-gray-100 flex items-center justify-center"
+                    style={{ width: LOGO_SIZE, height: LOGO_SIZE }}
+                  >
+                    {company.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs text-center mt-1 line-clamp-2">
+                  {company.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Step 3: Add Navigation to Main Map
+
+In `MessariStyleMap.tsx`, add click handler to layer sections:
+
+```typescript
+// In LayerSection component
+const router = useRouter()
+
+const handleLayerClick = () => {
+  const slug = layer.name.toLowerCase().replace(/\s+/g, '-')
+  router.push(`/map/${slug}`)
+}
+
+// Add onClick to the layer container
+<div
+  onClick={handleLayerClick}
+  className="cursor-pointer hover:opacity-90 transition-opacity"
+>
+  {/* Layer content */}
+</div>
+```
+
+### Step 4: Add generateStaticParams for SSG
+
+This pre-renders all layer pages at build time:
+
+```typescript
+export async function generateStaticParams() {
+  return Object.keys(LAYER_SLUGS).map(slug => ({ layer: slug }))
+}
+```
 
 ### Adding a New Layer
 
