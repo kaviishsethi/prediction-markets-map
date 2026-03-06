@@ -307,6 +307,9 @@ function CompanyCell({
   )
 }
 
+// Maximum rows to display in main map view
+const MAX_ROWS = 2
+
 // Responsive category section
 function CategorySection({
   category,
@@ -324,13 +327,23 @@ function CategorySection({
   // Calculate how many companies fit per row based on available width
   const companiesPerRow = Math.max(2, Math.floor(availableWidth / (CELL_WIDTH + CELL_GAP)))
 
-  // Show 2 rows worth, proportional to category size
-  const maxCompanies = companiesPerRow * 2
+  // Calculate how many rows we actually need (up to MAX_ROWS)
+  const maxCompanies = companiesPerRow * MAX_ROWS
   const displayCompanies = category.companies.slice(0, maxCompanies)
+  const actualRows = Math.ceil(displayCompanies.length / companiesPerRow)
 
-  // Split into rows
-  const row1 = displayCompanies.slice(0, companiesPerRow)
-  const row2 = displayCompanies.slice(companiesPerRow)
+  // Split companies into rows
+  const rows: Company[][] = []
+  for (let i = 0; i < actualRows; i++) {
+    const start = i * companiesPerRow
+    const end = start + companiesPerRow
+    rows.push(displayCompanies.slice(start, end))
+  }
+
+  // Dynamic height based on actual rows
+  const containerHeight = actualRows > 0
+    ? (CELL_HEIGHT * actualRows) + (ROW_GAP * (actualRows - 1))
+    : CELL_HEIGHT
 
   return (
     <div className="flex flex-col">
@@ -342,23 +355,18 @@ function CategorySection({
         {category.name} <span className="font-normal text-gray-400">({category.companies.length})</span>
       </div>
 
-      {/* Companies - always two rows with fixed height, evenly spaced */}
+      {/* Companies - dynamic rows based on company count */}
       <div
         className="flex flex-col"
-        style={{ gap: ROW_GAP, height: (CELL_HEIGHT * 2) + ROW_GAP }}
+        style={{ gap: ROW_GAP, height: containerHeight }}
       >
-        {/* Row 1 - equal space on all sides of each logo */}
-        <div className="flex justify-evenly" style={{ height: CELL_HEIGHT }}>
-          {row1.map((company, idx) => (
-            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
-          ))}
-        </div>
-        {/* Row 2 - equal space on all sides of each logo */}
-        <div className="flex justify-evenly" style={{ height: CELL_HEIGHT }}>
-          {row2.map((company, idx) => (
-            <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
-          ))}
-        </div>
+        {rows.map((rowCompanies, rowIdx) => (
+          <div key={rowIdx} className="flex justify-evenly" style={{ height: CELL_HEIGHT }}>
+            {rowCompanies.map((company, idx) => (
+              <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   )

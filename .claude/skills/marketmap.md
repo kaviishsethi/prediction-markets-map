@@ -800,7 +800,7 @@ Common lint errors that block Vercel deployment:
 │   │   ├── check-logos/route.ts       # Debug: check logo sync status
 │   │   └── map-data/route.ts          # Get map statistics
 │   ├── map/
-│   │   ├── page.tsx                   # Main map (32px logos, 52px cells, 2 rows/category)
+│   │   ├── page.tsx                   # Main map (32px logos, 52px cells, dynamic rows up to MAX_ROWS)
 │   │   └── [layer]/page.tsx           # Layer detail (52px logos, 76px cells, all companies)
 │   └── treemap/page.tsx               # Treemap page (if enabled)
 ├── components/
@@ -916,6 +916,14 @@ const CELL_WIDTH = 52          // Fixed width per company cell
 const CELL_HEIGHT = 54         // Fixed height: logo (32) + gap (2) + 2-line text (~20)
 const CELL_GAP = 4             // gap-1 = 4px horizontal between cells
 const ROW_GAP = 4              // gap-1 between rows
+const MAX_ROWS = 2             // Maximum rows per category (dynamic based on company count)
+```
+
+**Dynamic Row Calculation:**
+```typescript
+// Rows are dynamic - avoids wasted whitespace
+const actualRows = Math.ceil(displayCompanies.length / companiesPerRow)
+const containerHeight = (CELL_HEIGHT * actualRows) + (ROW_GAP * (actualRows - 1))
 ```
 
 **Category & Section Spacing:**
@@ -1134,7 +1142,7 @@ const LAYER_SLUGS: Record<string, string> = {
 
 ### Implementation
 
-1. **Main map** shows 2 rows per category (top companies by market cap)
+1. **Main map** shows dynamic rows per category (up to MAX_ROWS=2, based on company count)
 2. **Layer detail** shows ALL companies in that layer
 3. Click layer title or layer border to navigate to detail view
 4. "Back to Map" link returns to overview
