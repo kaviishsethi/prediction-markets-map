@@ -1017,12 +1017,36 @@ const titleWidth = (titleText.length * CHAR_WIDTH) + TITLE_PADDING
 const width = Math.max(titleWidth, minCompanyWidth, proportionalWidth)
 ```
 
-**Logo Spacing:**
+**Logo Spacing with justify-evenly:**
+
+⚠️ **CRITICAL: Edge Padding Calculation**
+
+When using `justify-evenly`, you MUST account for edge spacing in your `companiesPerRow` calculation, otherwise logos will be clipped at the borders:
+
 ```typescript
-// Equal space on all sides of each logo
-<div className="flex justify-evenly">
-  {companies.map(company => <CompanyCell ... />)}
+// WRONG - logos will clip at edges
+const companiesPerRow = Math.floor(availableWidth / (CELL_WIDTH + CELL_GAP))
+
+// CORRECT - account for edge padding that justify-evenly needs
+const edgePadding = CELL_GAP * 2  // padding on left and right edges
+const effectiveWidth = availableWidth - edgePadding
+const companiesPerRow = Math.max(1, Math.floor(effectiveWidth / (CELL_WIDTH + CELL_GAP)))
+```
+
+**Why this matters:**
+- `justify-evenly` distributes equal space around ALL items, including before the first and after the last
+- If you calculate `companiesPerRow` without accounting for this edge space, items near the borders get clipped
+- Subtracting `CELL_GAP * 2` reserves space for the left and right edges
+
+**Additional safeguards:**
+```typescript
+// Add small padding to rows for extra buffer
+<div className="flex justify-evenly px-1" style={{ height: CELL_HEIGHT }}>
+  {row.map(company => <CompanyCell ... />)}
 </div>
+
+// Add overflow-hidden to prevent any spillover
+<div className="flex flex-col overflow-hidden">
 ```
 
 ### Layer Detail View (LayerDetailView.tsx)
