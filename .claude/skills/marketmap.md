@@ -372,7 +372,7 @@ Tell the user:
 **Dashboard Login** (for running SQL queries, viewing tables):
 - URL: https://supabase.com/dashboard/project/mzukbrgwxstbxzfpzmdd
 - Email: `lucas@artemisanalytics.com`
-- Password: `jqc.wcr6erd3nem8UWT`
+- Password: `QUC_fha_pvw7yhe@kxm`
 
 **API Keys** (for `.env.local` file):
 
