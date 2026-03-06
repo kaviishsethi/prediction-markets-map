@@ -369,7 +369,12 @@ Tell the user:
 
 ### 4.1 Shared Supabase Credentials
 
-Use these values in your `.env.local` file:
+**Dashboard Login** (for running SQL queries, viewing tables):
+- URL: https://supabase.com/dashboard/project/mzukbrgwxstbxzfpzmdd
+- Email: `lucas@artemisanalytics.com`
+- Password: `jqc.wcr6erd3nem8UWT`
+
+**API Keys** (for `.env.local` file):
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://mzukbrgwxstbxzfpzmdd.supabase.co
