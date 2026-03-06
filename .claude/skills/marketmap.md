@@ -912,9 +912,32 @@ The map tooltip displays:
 const ARTEMIS_PURPLE = '#7C3AED'  // Primary brand color for borders, accents
 ```
 
+### Configurable Logo Sizes
+
+Logo size should be chosen based on your data. Use this guide:
+
+| Total Companies | Categories | Recommended LOGO_SIZE | CELL_WIDTH |
+|-----------------|------------|----------------------|------------|
+| < 50 | 3-5 | 48px | 72px |
+| 50-150 | 5-10 | 40px | 62px |
+| 150-300 | 10-15 | 32px | 52px |
+| 300+ | 15+ | 28px | 46px |
+
+**Formula for calculating dimensions:**
+```typescript
+// Base your cell width on logo size
+const LOGO_SIZE = 32  // Adjust based on company count
+const CELL_WIDTH = LOGO_SIZE + 20  // Logo + padding for text
+const CELL_HEIGHT = LOGO_SIZE + 22  // Logo + gap + 2-line text
+const CELL_GAP = Math.max(4, Math.floor(LOGO_SIZE / 8))  // Proportional gap
+const ROW_GAP = CELL_GAP
+```
+
+**ASK USER:** How many companies and categories do you have? I'll recommend the best logo size.
+
 ### Main Map View (MessariStyleMap.tsx)
 
-**Company Cell Dimensions:**
+**Company Cell Dimensions (default for ~300 companies):**
 ```typescript
 const LOGO_SIZE = 32           // Company logo size in pixels
 const CELL_WIDTH = 52          // Fixed width per company cell

@@ -325,7 +325,10 @@ function CategorySection({
   isPinned: boolean
 }) {
   // Calculate how many companies fit per row based on available width
-  const companiesPerRow = Math.max(2, Math.floor(availableWidth / (CELL_WIDTH + CELL_GAP)))
+  // Account for edge padding that justify-evenly needs to prevent border overlap
+  const edgePadding = CELL_GAP * 2  // padding on left and right edges
+  const effectiveWidth = availableWidth - edgePadding
+  const companiesPerRow = Math.max(2, Math.floor(effectiveWidth / (CELL_WIDTH + CELL_GAP)))
 
   // Calculate how many rows we actually need (up to MAX_ROWS)
   const maxCompanies = companiesPerRow * MAX_ROWS
