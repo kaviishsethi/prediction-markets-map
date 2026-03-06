@@ -307,15 +307,6 @@ function CompanyCell({
   )
 }
 
-// Calculate gap to fill available width
-function calculateGapForRow(itemCount: number, targetWidth: number): number {
-  if (itemCount <= 1) return CELL_GAP
-  const totalCellWidth = itemCount * CELL_WIDTH
-  const availableGapSpace = targetWidth - totalCellWidth
-  const gap = availableGapSpace / (itemCount - 1)
-  return Math.max(CELL_GAP, gap)
-}
-
 // Responsive category section
 function CategorySection({
   category,
@@ -331,8 +322,7 @@ function CategorySection({
   isPinned: boolean
 }) {
   // Calculate how many companies fit per row based on available width
-  const effectiveWidth = availableWidth - CATEGORY_PADDING
-  const companiesPerRow = Math.max(2, Math.floor(effectiveWidth / (CELL_WIDTH + CELL_GAP)))
+  const companiesPerRow = Math.max(2, Math.floor(availableWidth / (CELL_WIDTH + CELL_GAP)))
 
   // Show 2 rows worth, proportional to category size
   const maxCompanies = companiesPerRow * 2
@@ -341,10 +331,6 @@ function CategorySection({
   // Split into rows
   const row1 = displayCompanies.slice(0, companiesPerRow)
   const row2 = displayCompanies.slice(companiesPerRow)
-
-  // Calculate gap for each row to fill the effective width
-  const row1Gap = calculateGapForRow(row1.length, effectiveWidth)
-  const row2Gap = calculateGapForRow(row2.length, effectiveWidth)
 
   return (
     <div className="flex flex-col">
@@ -356,19 +342,19 @@ function CategorySection({
         {category.name} <span className="font-normal text-gray-400">({category.companies.length})</span>
       </div>
 
-      {/* Companies - always two rows with fixed height, spread to fill width */}
+      {/* Companies - always two rows with fixed height, evenly spaced */}
       <div
-        className="flex flex-col px-2"
+        className="flex flex-col"
         style={{ gap: ROW_GAP, height: (CELL_HEIGHT * 2) + ROW_GAP }}
       >
-        {/* Row 1 */}
-        <div className="flex justify-between" style={{ gap: row1Gap, height: CELL_HEIGHT }}>
+        {/* Row 1 - equal space on all sides of each logo */}
+        <div className="flex justify-evenly" style={{ height: CELL_HEIGHT }}>
           {row1.map((company, idx) => (
             <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
         </div>
-        {/* Row 2 - gap calculated to fill same width */}
-        <div className="flex justify-between" style={{ gap: row2Gap, height: CELL_HEIGHT }}>
+        {/* Row 2 - equal space on all sides of each logo */}
+        <div className="flex justify-evenly" style={{ height: CELL_HEIGHT }}>
           {row2.map((company, idx) => (
             <CompanyCell key={company.slug || idx} company={company} onHover={onHover} onClick={onClick} isPinned={isPinned} />
           ))}
@@ -399,25 +385,43 @@ function LayerSection({
     if (!containerRef.current) return
 
     const containerWidth = containerRef.current.offsetWidth
+    const isMobile = containerWidth < 640 // Tailwind's sm breakpoint
 
     // Calculate proportional widths based on company count
     const totalCompanies = layer.categories.reduce((sum, cat) => sum + cat.companies.length, 0)
 
+    // Minimum width to fit at least 2 companies per row
+    const minCompanyWidth = (CELL_WIDTH * 2) + CELL_GAP + CATEGORY_PADDING
+
+    // Estimate title width: ~7px per character for text-xs font + padding
+    const CHAR_WIDTH = 7
+    const TITLE_PADDING = 16 // px-2 = 8px * 2
+
     const widths = layer.categories.map(cat => {
-      // Proportional width based on company count, with min width
+      // Calculate minimum width needed for title
+      const titleText = `${cat.name} (${cat.companies.length})`
+      const titleWidth = (titleText.length * CHAR_WIDTH) + TITLE_PADDING
+
+      // Proportional width based on company count
       const proportion = cat.companies.length / totalCompanies
       const proportionalWidth = containerWidth * proportion
-      // Minimum width to fit at least 2 companies
-      const minWidth = (CELL_WIDTH * 2) + CELL_GAP + CATEGORY_PADDING
-      return Math.max(minWidth, proportionalWidth)
+
+      // Use the largest of: title width, company width, or proportional width
+      return Math.max(titleWidth, minCompanyWidth, proportionalWidth)
     })
 
-    // Normalize widths to fit container
+    // On mobile: don't scale down, let it overflow and scroll
+    // On desktop: normalize widths to fit container
     const totalWidth = widths.reduce((a, b) => a + b, 0)
-    const scale = containerWidth / totalWidth
-    const scaledWidths = widths.map(w => Math.floor(w * scale))
 
-    setCategoryWidths(scaledWidths)
+    if (isMobile || totalWidth <= containerWidth) {
+      // Use natural widths (will scroll on mobile)
+      setCategoryWidths(widths.map(w => Math.floor(w)))
+    } else {
+      // Scale to fit container on desktop
+      const scale = containerWidth / totalWidth
+      setCategoryWidths(widths.map(w => Math.floor(w * scale)))
+    }
   }, [layer.categories])
 
   useEffect(() => {
@@ -435,7 +439,7 @@ function LayerSection({
   }
 
   return (
-    <div className="mb-2 mt-2 relative">
+    <div className="mb-2 mt-2 relative ml-6 md:ml-0">
       {/* Layer title - vertical overlapping left border, reading bottom to top */}
       <div
         className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white z-10 cursor-pointer hover:opacity-80 transition-opacity py-1"
@@ -443,7 +447,7 @@ function LayerSection({
         onClick={handleLayerClick}
       >
         <span
-          className="text-base font-bold whitespace-nowrap"
+          className="text-xs md:text-base font-bold whitespace-nowrap"
           style={{
             color: ARTEMIS_PURPLE,
             writingMode: 'vertical-rl',
@@ -454,10 +458,10 @@ function LayerSection({
         </span>
       </div>
 
-      {/* Container with full border - equal padding top/bottom for divider spacing */}
+      {/* Container with full border - horizontal scroll on mobile */}
       <div
         ref={containerRef}
-        className="flex rounded-lg overflow-hidden cursor-pointer hover:border-opacity-80 transition-all"
+        className="flex rounded-lg overflow-x-auto cursor-pointer hover:border-opacity-80 transition-all scrollbar-hide"
         style={{ borderColor: ARTEMIS_PURPLE, borderWidth: 2, borderStyle: 'solid', paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
         onClick={handleLayerClick}
       >
@@ -540,23 +544,23 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       )}
 
       {/* Header */}
-      <div className="px-6 flex items-center gap-4" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
+      <div className="px-3 md:px-6 flex items-center gap-2 md:gap-4" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
         {/* Artemis Logo */}
         <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer">
           <img
             src="/artemis-logo.svg"
             alt="Artemis"
-            className="h-12 w-12 hover:opacity-80 transition-opacity"
+            className="h-8 w-8 md:h-12 md:w-12 hover:opacity-80 transition-opacity"
           />
         </a>
 
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-xl md:text-4xl font-bold text-gray-900">
           {config.title}
         </h1>
       </div>
 
       {/* Map content */}
-      <div className="px-6">
+      <div className="px-3 md:px-6">
         {config.layers.map((layer, idx) => (
           <LayerSection
             key={idx}
@@ -571,22 +575,22 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
 
       {/* Footer */}
       <div
-        className="px-6 flex items-center justify-between"
+        className="px-3 md:px-6 flex items-center justify-between"
         style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}
       >
-        <div className="text-xs text-gray-500">
+        <div className="text-[10px] md:text-xs text-gray-500">
           {config.dataAsOf && <div>Data as of: {config.dataAsOf}</div>}
           {config.footnote && <div className="mt-0.5">{config.footnote}</div>}
         </div>
 
         {/* Artemis branding */}
-        <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity">
           <img
             src="/artemis-logo.svg"
             alt="Artemis"
-            className="h-6 w-6"
+            className="h-5 w-5 md:h-6 md:w-6"
           />
-          <span className="font-semibold text-gray-700 text-sm">Artemis</span>
+          <span className="font-semibold text-gray-700 text-xs md:text-sm">Artemis</span>
         </a>
       </div>
     </div>

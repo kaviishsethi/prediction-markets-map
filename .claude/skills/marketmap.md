@@ -938,15 +938,63 @@ const SECTION_SPACING = 4      // Space between header/layers/footer
 - Category dividers: `2px solid` with `ARTEMIS_PURPLE` at 90% opacity (`#7C3AED90`)
 
 **Logo Sizes by Location:**
-| Location | Size | Tailwind Class |
-|----------|------|----------------|
-| Company cell | 32px | Custom style |
-| Tooltip | 48px | Custom style |
-| Header | 48px | `h-12 w-12` |
-| Footer | 24px | `h-6 w-6` |
+| Location | Desktop | Mobile | Tailwind Class |
+|----------|---------|--------|----------------|
+| Company cell | 32px | 32px | Custom style |
+| Tooltip | 48px | 48px | Custom style |
+| Header | 48px | 32px | `h-8 w-8 md:h-12 md:w-12` |
+| Footer | 24px | 20px | `h-5 w-5 md:h-6 md:w-6` |
 
 **Page Padding:**
-- Main map: `px-6` (24px each side)
+- Desktop: `px-6` (24px each side)
+- Mobile: `px-3` (12px each side)
+
+### Mobile Responsiveness
+
+The map is fully responsive with horizontal scrolling on mobile.
+
+**Responsive Breakpoint:**
+```typescript
+const isMobile = containerWidth < 640  // Tailwind's sm breakpoint
+```
+
+**Mobile-Specific Behavior:**
+1. **Horizontal scroll** - Layers scroll horizontally instead of squishing content
+2. **Category widths** - Based on title length, not scaled down on mobile
+3. **Layer titles** - Smaller font (`text-xs` vs `text-base`)
+4. **Left margin** - `ml-6` on mobile to make room for layer title
+
+**CSS for Hidden Scrollbar (app/globals.css):**
+```css
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+```
+
+**Category Width Calculation:**
+```typescript
+// Width based on title length (~7px per character)
+const CHAR_WIDTH = 7
+const TITLE_PADDING = 16
+const titleText = `${cat.name} (${cat.companies.length})`
+const titleWidth = (titleText.length * CHAR_WIDTH) + TITLE_PADDING
+
+// Use largest of: title width, min company width, or proportional width
+const width = Math.max(titleWidth, minCompanyWidth, proportionalWidth)
+```
+
+**Logo Spacing:**
+```typescript
+// Equal space on all sides of each logo
+<div className="flex justify-evenly">
+  {companies.map(company => <CompanyCell ... />)}
+</div>
+```
 
 ### Layer Detail View (LayerDetailView.tsx)
 
