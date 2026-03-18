@@ -1,0 +1,701 @@
+[
+  {
+    "layer": "Prediction Market Platforms",
+    "color": "#6366f1",
+    "subcategories": [
+      {
+        "name": "Regulated US Exchanges (DCMs)",
+        "companies": [
+          {
+            "name": "Kalshi",
+            "domain": "kalshi.com",
+            "logoPath": "assets/logos/kalshi.png",
+            "logoResolved": true
+          },
+          {
+            "name": "PredictIt",
+            "domain": "predictit.org",
+            "logoPath": "assets/logos/predictit.png",
+            "logoResolved": true
+          },
+          {
+            "name": "ForecastEx",
+            "domain": "forecastex.com",
+            "logoPath": "assets/logos/forecastex.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CME Group",
+            "domain": "cmegroup.com",
+            "logoPath": "assets/logos/cme_group.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Novig",
+            "domain": "novig.com",
+            "logoPath": "assets/logos/novig.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Crypto / DeFi Markets",
+        "companies": [
+          {
+            "name": "Polymarket",
+            "domain": "polymarket.com",
+            "logoPath": "assets/logos/polymarket.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Drift",
+            "domain": "drift.trade",
+            "logoPath": "assets/logos/drift.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Limitless",
+            "domain": "limitless.exchange",
+            "logoPath": "assets/logos/limitless.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Myriad",
+            "domain": "myriad.markets",
+            "logoPath": "assets/logos/myriad.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Opinion",
+            "domain": "opinion.trade",
+            "logoPath": "assets/logos/opinion.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Predictdotfun",
+            "domain": "predict.fun",
+            "logoPath": "assets/logos/predictdotfun.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Probable",
+            "domain": "probable.bet",
+            "logoPath": "assets/logos/probable.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Sportsbook & TradFi Entrants",
+        "companies": [
+          {
+            "name": "DraftKings",
+            "domain": "draftkings.com",
+            "logoPath": "assets/logos/draftkings.png",
+            "logoResolved": true
+          },
+          {
+            "name": "FanDuel",
+            "domain": "fanduel.com",
+            "logoPath": "assets/logos/fanduel.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Robinhood",
+            "domain": "robinhood.com",
+            "logoPath": "assets/logos/robinhood.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Fanatics",
+            "domain": "fanatics.com",
+            "logoPath": "assets/logos/fanatics.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Coinbase",
+            "domain": "coinbase.com",
+            "logoPath": "assets/logos/coinbase.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Gemini",
+            "domain": "gemini.com",
+            "logoPath": "assets/logos/gemini.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Crypto.com",
+            "domain": "crypto.com",
+            "logoPath": "assets/logos/crypto_com.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Webull",
+            "domain": "webull.com",
+            "logoPath": "assets/logos/webull.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Distribution & Access",
+    "color": "#3b82f6",
+    "subcategories": [
+      {
+        "name": "Broker Distribution",
+        "companies": [
+          {
+            "name": "Robinhood",
+            "domain": "robinhood.com",
+            "logoPath": "assets/logos/robinhood.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Webull",
+            "domain": "webull.com",
+            "logoPath": "assets/logos/webull.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Interactive Brokers",
+            "domain": "interactivebrokers.com",
+            "logoPath": "assets/logos/interactive_brokers.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Coinbase",
+            "domain": "coinbase.com",
+            "logoPath": "assets/logos/coinbase.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Gemini",
+            "domain": "gemini.com",
+            "logoPath": "assets/logos/gemini.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Crypto.com",
+            "domain": "crypto.com",
+            "logoPath": "assets/logos/crypto_com.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Aggregators & APIs",
+        "companies": [
+          {
+            "name": "Polymarket API",
+            "domain": "polymarket.com",
+            "logoPath": "assets/logos/polymarket_api.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Kalshi API",
+            "domain": "kalshi.com",
+            "logoPath": "assets/logos/kalshi_api.png",
+            "logoResolved": true
+          },
+          {
+            "name": "RealClearPolitics",
+            "domain": "realclearpolitics.com",
+            "logoPath": "assets/logos/realclearpolitics.png",
+            "logoResolved": true
+          },
+          {
+            "name": "ElectionBettingOdds",
+            "domain": "electionbettingodds.com",
+            "logoPath": "assets/logos/electionbettingodds.svg",
+            "logoResolved": true
+          },
+          {
+            "name": "Metaforecast",
+            "domain": "metaforecast.org",
+            "logoPath": "assets/logos/metaforecast.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Liquidity & Market Making",
+    "color": "#22c55e",
+    "subcategories": [
+      {
+        "name": "Institutional Market Makers",
+        "companies": [
+          {
+            "name": "Susquehanna (SIG)",
+            "domain": "sig.com",
+            "logoPath": "assets/logos/susquehanna_sig.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Jump Trading",
+            "domain": "jumptrading.com",
+            "logoPath": "assets/logos/jump_trading.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Jane Street",
+            "domain": "janestreet.com",
+            "logoPath": "assets/logos/jane_street.png",
+            "logoResolved": true
+          },
+          {
+            "name": "DRW/Cumberland",
+            "domain": "drw.com",
+            "logoPath": "assets/logos/drw_cumberland.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Wintermute",
+            "domain": "wintermute.com",
+            "logoPath": "assets/logos/wintermute.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Citadel Securities",
+            "domain": "citadelsecurities.com",
+            "logoPath": "assets/logos/citadel_securities.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Data, Analytics & Research",
+    "color": "#14b8a6",
+    "subcategories": [
+      {
+        "name": "Analytics Platforms",
+        "companies": [
+          {
+            "name": "Artemis",
+            "domain": "artemis.xyz",
+            "logoPath": "assets/logos/artemis.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Dune Analytics",
+            "domain": "dune.com",
+            "logoPath": "assets/logos/dune_analytics.png",
+            "logoResolved": true
+          },
+          {
+            "name": "DefiLlama",
+            "domain": "defillama.com",
+            "logoPath": "assets/logos/defillama.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Nansen",
+            "domain": "nansen.ai",
+            "logoPath": "assets/logos/nansen.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CoinGecko",
+            "domain": "coingecko.com",
+            "logoPath": "assets/logos/coingecko.png",
+            "logoResolved": true
+          },
+          {
+            "name": "The Block",
+            "domain": "theblock.co",
+            "logoPath": "assets/logos/the_block.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Blockworks",
+            "domain": "blockworks.co",
+            "logoPath": "assets/logos/blockworks.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Token Terminal",
+            "domain": "tokenterminal.com",
+            "logoPath": "assets/logos/token_terminal.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Polymarket Analytics",
+            "domain": "polymarketanalytics.com",
+            "logoPath": "assets/logos/polymarket_analytics.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Media & Research",
+        "companies": [
+          {
+            "name": "Bloomberg",
+            "domain": "bloomberg.com",
+            "logoPath": "assets/logos/bloomberg.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CNBC",
+            "domain": "cnbc.com",
+            "logoPath": "assets/logos/cnbc.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CoinDesk",
+            "domain": "coindesk.com",
+            "logoPath": "assets/logos/coindesk.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Blockworks",
+            "domain": "blockworks.co",
+            "logoPath": "assets/logos/blockworks.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Sportico",
+            "domain": "sportico.com",
+            "logoPath": "assets/logos/sportico.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Oracle, Resolution & Benchmarks",
+    "color": "#f97316",
+    "subcategories": [
+      {
+        "name": "On-Chain Oracles",
+        "companies": [
+          {
+            "name": "UMA",
+            "domain": "uma.xyz",
+            "logoPath": "assets/logos/uma.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Chainlink",
+            "domain": "chain.link",
+            "logoPath": "assets/logos/chainlink.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Pyth",
+            "domain": "pyth.network",
+            "logoPath": "assets/logos/pyth.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Reality.eth",
+            "domain": "realitio.github.io",
+            "logoPath": "assets/logos/reality_eth.png",
+            "logoResolved": true
+          },
+          {
+            "name": "API3",
+            "domain": "api3.org",
+            "logoPath": "assets/logos/api3.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Kleros",
+            "domain": "kleros.io",
+            "logoPath": "assets/logos/kleros.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Benchmarks & Pricing",
+        "companies": [
+          {
+            "name": "CF Benchmarks",
+            "domain": "cfbenchmarks.com",
+            "logoPath": "assets/logos/cf_benchmarks.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Kaiko",
+            "domain": "kaiko.com",
+            "logoPath": "assets/logos/kaiko.png",
+            "logoResolved": true
+          },
+          {
+            "name": "S&P Dow Jones",
+            "domain": "spglobal.com",
+            "logoPath": "assets/logos/s_p_dow_jones.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Core Infrastructure",
+    "color": "#ef4444",
+    "subcategories": [
+      {
+        "name": "Settlement Chains",
+        "companies": [
+          {
+            "name": "Polygon",
+            "domain": "polygon.technology",
+            "logoPath": "assets/logos/polygon.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Ethereum",
+            "domain": "ethereum.org",
+            "logoPath": "assets/logos/ethereum.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Solana",
+            "domain": "solana.com",
+            "logoPath": "assets/logos/solana.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Gnosis Chain",
+            "domain": "gnosis.io",
+            "logoPath": "assets/logos/gnosis_chain.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Arbitrum",
+            "domain": "arbitrum.io",
+            "logoPath": "assets/logos/arbitrum.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Base",
+            "domain": "base.org",
+            "logoPath": "assets/logos/base.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Optimism",
+            "domain": "optimism.io",
+            "logoPath": "assets/logos/optimism.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Binance (BSC)",
+            "domain": "binance.com",
+            "logoPath": "assets/logos/binance_bsc.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Clearing & Exchange Infra",
+        "companies": [
+          {
+            "name": "KalshiEX",
+            "domain": "kalshi.com",
+            "logoPath": "assets/logos/kalshiex.png",
+            "logoResolved": true
+          },
+          {
+            "name": "LedgerX",
+            "domain": "ledgerx.com",
+            "logoPath": "assets/logos/ledgerx.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CME Clearing",
+            "domain": "cmegroup.com",
+            "logoPath": "assets/logos/cme_clearing.png",
+            "logoResolved": true
+          },
+          {
+            "name": "ForecastEx",
+            "domain": "forecastex.com",
+            "logoPath": "assets/logos/forecastex.png",
+            "logoResolved": true
+          },
+          {
+            "name": "The Clearing Company",
+            "domain": "theclearingcompany.com",
+            "logoPath": "assets/logos/the_clearing_company.svg",
+            "logoResolved": true
+          },
+          {
+            "name": "Gnosis CTF",
+            "domain": "gnosis.io",
+            "logoPath": "assets/logos/gnosis_ctf.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Compliance & KYC/AML",
+        "companies": [
+          {
+            "name": "Chainalysis",
+            "domain": "chainalysis.com",
+            "logoPath": "assets/logos/chainalysis.svg",
+            "logoResolved": true
+          },
+          {
+            "name": "Elliptic",
+            "domain": "elliptic.co",
+            "logoPath": "assets/logos/elliptic.png",
+            "logoResolved": true
+          },
+          {
+            "name": "TRM Labs",
+            "domain": "trmlabs.com",
+            "logoPath": "assets/logos/trm_labs.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Persona",
+            "domain": "withpersona.com",
+            "logoPath": "assets/logos/persona.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "layer": "Regulatory & Capital",
+    "color": "#64748b",
+    "subcategories": [
+      {
+        "name": "Regulators",
+        "companies": [
+          {
+            "name": "CFTC",
+            "domain": "cftc.gov",
+            "logoPath": "assets/logos/cftc.png",
+            "logoResolved": true
+          },
+          {
+            "name": "SEC",
+            "domain": "sec.gov",
+            "logoPath": "assets/logos/sec.png",
+            "logoResolved": true
+          },
+          {
+            "name": "UK Gambling Commission",
+            "domain": "gamblingcommission.gov.uk",
+            "logoPath": "assets/logos/uk_gambling_commission.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Nevada Gaming Board",
+            "domain": "gaming.nv.gov",
+            "logoPath": "assets/logos/nevada_gaming_board.png",
+            "logoResolved": true
+          }
+        ]
+      },
+      {
+        "name": "Investors",
+        "companies": [
+          {
+            "name": "Paradigm",
+            "domain": "paradigm.xyz",
+            "logoPath": "assets/logos/paradigm.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Sequoia",
+            "domain": "sequoiacap.com",
+            "logoPath": "assets/logos/sequoia.png",
+            "logoResolved": true
+          },
+          {
+            "name": "a16z",
+            "domain": "a16z.com",
+            "logoPath": "assets/logos/a16z.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Founders Fund",
+            "domain": "foundersfund.com",
+            "logoPath": "assets/logos/founders_fund.png",
+            "logoResolved": true
+          },
+          {
+            "name": "ARK Invest",
+            "domain": "ark-invest.com",
+            "logoPath": "assets/logos/ark_invest.png",
+            "logoResolved": true
+          },
+          {
+            "name": "General Catalyst",
+            "domain": "generalcatalyst.com",
+            "logoPath": "assets/logos/general_catalyst.png",
+            "logoResolved": true
+          },
+          {
+            "name": "CapitalG",
+            "domain": "capitalg.com",
+            "logoPath": "assets/logos/capitalg.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Y Combinator",
+            "domain": "ycombinator.com",
+            "logoPath": "assets/logos/y_combinator.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Dragonfly",
+            "domain": "dragonfly.xyz",
+            "logoPath": "assets/logos/dragonfly.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Polychain",
+            "domain": "polychain.capital",
+            "logoPath": "assets/logos/polychain.svg",
+            "logoResolved": true
+          },
+          {
+            "name": "Coinbase Ventures",
+            "domain": "coinbase.com",
+            "logoPath": "assets/logos/coinbase_ventures.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Pantera Capital",
+            "domain": "panteracapital.com",
+            "logoPath": "assets/logos/pantera_capital.png",
+            "logoResolved": true
+          },
+          {
+            "name": "1confirmation",
+            "domain": "1confirmation.com",
+            "logoPath": "assets/logos/1confirmation.png",
+            "logoResolved": true
+          },
+          {
+            "name": "IVP",
+            "domain": "ivp.com",
+            "logoPath": "assets/logos/ivp.png",
+            "logoResolved": true
+          },
+          {
+            "name": "Meritech Capital",
+            "domain": "meritechcapital.com",
+            "logoPath": "assets/logos/meritech_capital.png",
+            "logoResolved": true
+          }
+        ]
+      }
+    ]
+  }
+]

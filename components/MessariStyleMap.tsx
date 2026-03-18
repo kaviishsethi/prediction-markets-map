@@ -8,14 +8,15 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 const ARTEMIS_PURPLE = '#7C3AED'
 
 // Company cell dimensions
-const LOGO_SIZE = 32
-const CELL_WIDTH = 52 // Fixed width per company cell
-const CELL_HEIGHT = 54 // Fixed height: logo (32) + gap (2) + 2-line text (~20)
-const CELL_GAP = 4 // gap-1 = 4px
-const CATEGORY_PADDING = 16 // px-2 = 8px * 2
-const ROW_GAP = 4 // gap-1 between rows
-const DIVIDER_MARGIN = 4 // Equal margin from top and bottom for category dividers
-const SECTION_SPACING = 4 // Space between header/layers/footer
+const LOGO_SIZE = 28
+const CELL_WIDTH = 56 // Slightly wider for longer names
+const CELL_HEIGHT = 48 // logo (28) + gap (2) + 2-line text (~18)
+const CELL_GAP = 2
+const CATEGORY_PADDING = 12
+const ROW_GAP = 2
+const DIVIDER_MARGIN = 2
+const SECTION_SPACING = 2
+const LAYER_LABEL_WIDTH = 20 // Width reserved for vertical layer label
 
 interface Company {
   name: string
@@ -299,7 +300,7 @@ function CompanyCell({
       )}
       <span
         className="text-gray-900 text-center leading-tight mt-0.5 line-clamp-2 overflow-hidden"
-        style={{ fontSize: 7, width: CELL_WIDTH - 4, height: 18 }}
+        style={{ fontSize: 6.5, width: CELL_WIDTH - 2, height: 16 }}
       >
         {company.name}
       </span>
@@ -352,8 +353,8 @@ function CategorySection({
     <div className="flex flex-col">
       {/* Category header */}
       <div
-        className="text-xs font-semibold text-center pb-0.5 px-2 whitespace-nowrap"
-        style={{ color: '#374151' }}
+        className="font-semibold text-center pb-0.5 px-1 whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ color: '#374151', fontSize: '8px' }}
       >
         {category.name} <span className="font-normal text-gray-400">({category.companies.length})</span>
       </div>
@@ -404,9 +405,9 @@ function LayerSection({
     // Minimum width to fit at least 2 companies per row
     const minCompanyWidth = (CELL_WIDTH * 2) + CELL_GAP + CATEGORY_PADDING
 
-    // Estimate title width: ~7px per character for text-xs font + padding
-    const CHAR_WIDTH = 7
-    const TITLE_PADDING = 16 // px-2 = 8px * 2
+    // Estimate title width: ~5px per character for 8px font + padding
+    const CHAR_WIDTH = 5
+    const TITLE_PADDING = 8
 
     const widths = layer.categories.map(cat => {
       // Calculate minimum width needed for title
@@ -450,19 +451,21 @@ function LayerSection({
   }
 
   return (
-    <div className="mb-2 mt-2 relative ml-6 md:ml-0">
+    <div className="mb-0.5 mt-0.5 relative" style={{ marginLeft: LAYER_LABEL_WIDTH }}>
       {/* Layer title - vertical overlapping left border, reading bottom to top */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white z-10 cursor-pointer hover:opacity-80 transition-opacity py-1"
-        style={{ left: 0 }}
+        className="absolute top-1/2 -translate-y-1/2 bg-white z-10 cursor-pointer hover:opacity-80 transition-opacity"
+        style={{ left: -LAYER_LABEL_WIDTH, width: LAYER_LABEL_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onClick={handleLayerClick}
       >
         <span
-          className="text-xs md:text-base font-bold whitespace-nowrap"
+          className="font-bold whitespace-nowrap"
           style={{
             color: ARTEMIS_PURPLE,
             writingMode: 'vertical-rl',
-            transform: 'rotate(180deg)'
+            transform: 'rotate(180deg)',
+            fontSize: '9px',
+            letterSpacing: '0.02em',
           }}
         >
           {layer.name}
@@ -472,8 +475,8 @@ function LayerSection({
       {/* Container with full border - horizontal scroll on mobile */}
       <div
         ref={containerRef}
-        className="flex rounded-lg overflow-x-auto cursor-pointer hover:border-opacity-80 transition-all scrollbar-hide"
-        style={{ borderColor: ARTEMIS_PURPLE, borderWidth: 2, borderStyle: 'solid', paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
+        className="flex rounded-md overflow-x-auto cursor-pointer hover:border-opacity-80 transition-all scrollbar-hide"
+        style={{ borderColor: ARTEMIS_PURPLE, borderWidth: 1.5, borderStyle: 'solid', paddingTop: DIVIDER_MARGIN, paddingBottom: DIVIDER_MARGIN }}
         onClick={handleLayerClick}
       >
         {layer.categories.map((category, idx) => (
@@ -482,7 +485,7 @@ function LayerSection({
             className="flex-shrink-0"
             style={{
               width: categoryWidths[idx] || 'auto',
-              borderRight: idx < layer.categories.length - 1 ? `2px solid ${ARTEMIS_PURPLE}90` : 'none'
+              borderRight: idx < layer.categories.length - 1 ? `1.5px solid ${ARTEMIS_PURPLE}90` : 'none'
             }}
           >
             <CategorySection
@@ -555,23 +558,23 @@ export function MessariStyleMap({ config }: MessariStyleMapProps) {
       )}
 
       {/* Header */}
-      <div className="px-3 md:px-6 flex items-center gap-2 md:gap-4" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
+      <div className="px-3 md:px-4 flex items-center gap-2" style={{ paddingTop: SECTION_SPACING, paddingBottom: SECTION_SPACING }}>
         {/* Artemis Logo */}
         <a href="https://www.artemis.xyz" target="_blank" rel="noopener noreferrer">
           <img
             src="/artemis-logo.svg"
             alt="Artemis"
-            className="h-8 w-8 md:h-12 md:w-12 hover:opacity-80 transition-opacity"
+            className="h-6 w-6 md:h-8 md:w-8 hover:opacity-80 transition-opacity"
           />
         </a>
 
-        <h1 className="text-xl md:text-4xl font-bold text-gray-900">
+        <h1 className="text-lg md:text-2xl font-bold text-gray-900">
           {config.title}
         </h1>
       </div>
 
       {/* Map content */}
-      <div className="px-3 md:px-6">
+      <div className="px-3 md:px-4" style={{ marginLeft: 4 }}>
         {config.layers.map((layer, idx) => (
           <LayerSection
             key={idx}
