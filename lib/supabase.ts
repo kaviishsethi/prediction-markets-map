@@ -1,14 +1,36 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+function getClient(url: string | undefined, key: string | undefined): SupabaseClient {
+  if (!url || !key) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  return createClient(url, key)
+}
 
-// Client for public reads
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+let _supabase: SupabaseClient | null = null
+let _supabaseAdmin: SupabaseClient | null = null
 
-// Admin client for writes (server-side only)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+// Client for public reads (lazy-initialized)
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    if (!_supabase) {
+      _supabase = getClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_API_KEY)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (_supabase as any)[prop]
+  },
+})
+
+// Admin client for writes (lazy-initialized)
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    if (!_supabaseAdmin) {
+      _supabaseAdmin = getClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (_supabaseAdmin as any)[prop]
+  },
+})
 
 // Table prefix for this sector
 export const TABLE_PREFIX = process.env.TABLE_PREFIX || 'ai_'
